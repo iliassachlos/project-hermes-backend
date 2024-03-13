@@ -2,8 +2,7 @@ package org.example.user.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.example.user.Services.UserService;
-import org.example.user.dto.RegisterUserRequest;
-import org.example.user.dto.RegisterUserResponse;
+import org.example.user.dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,18 +19,26 @@ public class UserController {
         String username = registerUserRequest.getUsername();
         String email = registerUserRequest.getEmail();
         String password = registerUserRequest.getPassword();
-        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
-            return RegisterUserResponse.builder()
-                    .message("Please provide all the required fields")
-                    .build();
-        } else {
-            return userService.registerUser(username, email, password);
-        }
+        return userService.registerUser(username, email, password);
     }
 
-    //todo: login
+    @PostMapping("/login")
+    @ResponseStatus(HttpStatus.FOUND)
+    public LoginUserResponse loginUser(@RequestBody LoginUserRequest loginUserRequest) {
+        String email = loginUserRequest.getEmail();
+        String password = loginUserRequest.getPassword();
+        return userService.loginUser(email,password);
+    }
 
-    //todo: get all users
+    @GetMapping
+    @ResponseStatus(HttpStatus.FOUND)
+    public UsersResponse getAllUsers(){
+        return userService.getAllUsers();
+    }
 
-    //todo: get user by id
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.FOUND)
+    public UserResponse getUserById(@PathVariable String id){
+        return userService.getUserById(id);
+    }
 }
