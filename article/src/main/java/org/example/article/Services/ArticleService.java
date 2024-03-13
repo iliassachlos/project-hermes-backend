@@ -17,46 +17,6 @@ import java.util.List;
 public class ArticleService {
     private final ArticleRepository articleRepository;
 
-    public void saveArticles(List<Article> articles) {
-        List<Article> newArticles = new ArrayList<>();
-        Integer newArticlesCounter = 0;
-
-        log.info("Inserting articles to MongoDB...");
-        try {
-            for (Article article : articles) {
-                // Check if article already exists in MongoDB based on URL
-                Article existingArticle = articleRepository.findByUrl(article.getUrl());
-                if (existingArticle == null) {
-                    //IF article not exist, save it to MongoDB
-                    Article savedArticle = articleRepository.save(article);
-                    newArticles.add(savedArticle);
-                    newArticlesCounter++;
-                }
-            }
-            for (Article newArticle : newArticles) {
-                log.info("New article added: {}", newArticle.getTitle());
-            }
-            log.info("Articles added: {}", newArticlesCounter);
-        } catch (Exception e) {
-            log.error("Error occurred while saving articles", e);
-        }
-    }
-
-    public void deleteOldArticles() {
-        //Calculate 3 days ago
-        LocalDate threeDaysAgo = LocalDate.now().minusDays(3);
-        log.info("Deleting old articles...");
-        try {
-            //Find old articles
-            List<Article> oldArticles = articleRepository.findByTimeBefore(threeDaysAgo);
-            //Delete articles older than 3 days
-            articleRepository.deleteByTimeBefore(threeDaysAgo);
-            log.info(oldArticles.size() + " articles where deleted");
-        } catch (Exception e) {
-            log.error("Error occurred while deleting old articles", e);
-        }
-    }
-
     public List<Article> getAllArticles() {
         List<Article> articles = new ArrayList<>();
         try {

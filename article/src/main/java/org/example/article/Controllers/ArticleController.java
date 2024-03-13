@@ -23,20 +23,6 @@ public class ArticleController {
     private final ArticleService articleService;
     //todo: add scraping service
 
-//    @GetMapping("/scrape")
-//    @ResponseStatus(HttpStatus.OK)
-//    public List<Article> fetchArticles() {
-//        List<Article> articles = scrapingService.fetchArticlesFromWebsites();
-//        try {
-//            articleService.saveArticles(articles);
-//        } catch (Exception e) {
-//            log.error("Error occurred while fetching articles", e);
-//        } finally {
-//            articleService.deleteOldArticles();
-//        }
-//        return articles;
-//    }
-
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
     public ArticlesResponse getAllArticles() {
