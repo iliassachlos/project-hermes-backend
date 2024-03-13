@@ -5,12 +5,16 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.user.Entities.User;
 import org.example.user.Repositories.UserRepository;
+import org.example.user.dto.LoginUserResponse;
 import org.example.user.dto.RegisterUserResponse;
+import org.example.user.dto.UserResponse;
+import org.example.user.dto.UsersResponse;
 import org.example.user.utilities.JwtTokenUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AllArgsConstructor
@@ -20,31 +24,45 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
 
     public RegisterUserResponse registerUser(String username, String email, String password) {
-        //Check if user already exists in database
-        User existingUser = userRepository.findUserByEmail(email);
-        if (existingUser != null) {
-            log.error("User already exists");
+        User newUser = new User();
+        String token = null;
+
+        //Check if user credentials are not empty
+        if (username.isEmpty() || email.isEmpty() || password.isEmpty()) {
             return RegisterUserResponse.builder()
-                    .message("User already exists")
+                    .message("Please provide all the required fields")
                     .build();
         }
-        //Encrypt password
-        String encryptedPassword = passwordEncoder.encode(password);
+        try {
+            //Check if user already exists in database
+            User existingUser = userRepository.findUserByEmail(email);
+            if (existingUser != null) {
+                log.error("User already exists");
+                return RegisterUserResponse.builder()
+                        .message("User already exists")
+                        .build();
+            }
 
-        //Build new user
-        User newUser = User.builder()
-                .username(username)
-                .email(email)
-                .password(encryptedPassword)
-                .isAdmin(false)
-                .bookmarkedArticles(new ArrayList<>())
-                .build();
+            //Encrypt password
+            String encryptedPassword = passwordEncoder.encode(password);
 
-        //Save new user to database
-        userRepository.save(newUser);
+            //Build new user
+            newUser = User.builder()
+                    .username(username)
+                    .email(email)
+                    .password(encryptedPassword)
+                    .isAdmin(false)
+                    .bookmarkedArticles(new ArrayList<>())
+                    .build();
 
-        // Generate JWT token
-        String token = JwtTokenUtil.generateToken(newUser.getId());
+            //Save new user to database
+            userRepository.save(newUser);
+
+            // Generate JWT token
+            token = JwtTokenUtil.generateToken(newUser.get_id());
+        } catch (Exception e) {
+            log.error("Error occurred while registering user", e);
+        }
 
         log.info("User created successfully {}", email);
         return RegisterUserResponse.builder()
@@ -53,4 +71,82 @@ public class UserService {
                 .token(token)
                 .build();
     }
+
+    public LoginUserResponse loginUser(String email, String password) {
+        User foundUser = new User();
+        String token = null;
+
+        // Check if user credentials are not empty
+        if (email.isEmpty() || password.isEmpty()) {
+            log.error("Please provide all the required fields");
+            return LoginUserResponse.builder()
+                    .message("Please provide all the required fields")
+                    .build();
+        }
+        try {
+            // Check if user exists in the database
+            foundUser = userRepository.findUserByEmail(email);
+            if (foundUser == null) {
+                log.error("User not found for email: {}", email);
+                return LoginUserResponse.builder()
+                        .message("User not found. Please check your credentials or register")
+                        .build();
+            }
+
+            // Check found user's encrypted password with the provided password
+            String encryptedPassword = foundUser.getPassword();
+            if (passwordEncoder.matches(password, encryptedPassword)) {
+                // Passwords match, login successful
+                token = JwtTokenUtil.generateToken(foundUser.get_id());
+            } else {
+                // Passwords don't match
+                log.error("Invalid pasword. Please try again!");
+                return LoginUserResponse.builder()
+                        .message("Invalid password. Please try again!")
+                        .build();
+            }
+        } catch (Exception e) {
+            log.error("An error occurred while login user", e);
+        }
+
+        log.info("Login successful");
+        return LoginUserResponse.builder()
+                .message("Login successful")
+                .user(foundUser)
+                .token(token)
+                .build();
+    }
+
+    public UsersResponse getAllUsers() {
+        List<User> users = new ArrayList<>();
+        try {
+            users = userRepository.findAll();
+        } catch (Exception e) {
+            log.error("Error occurred while getting all users", e);
+        }
+
+        log.info("All users fetched successfully");
+        return UsersResponse.builder()
+                .users(users)
+                .build();
+    }
+
+
+    public UserResponse getUserById(String id) {
+        User user = new User();
+        try {
+            //Check if user exists in database
+            user = userRepository.findUserBy_id(id);
+            if (user == null) {
+                log.error("User was not found");
+                return null;
+            }
+        } catch (Exception e) {
+            log.error("Error occurred while finding user by id {}", id);
+        }
+        return UserResponse.builder()
+                .user(user)
+                .build();
+    }
 }
+

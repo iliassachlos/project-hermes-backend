@@ -6,12 +6,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.example.user.Entities.User;
 
+import java.util.List;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginUserResponse {
-    private String message;
-    private User user;
-    private String token;
+public class UsersResponse {
+    private List<User> users;
 }
