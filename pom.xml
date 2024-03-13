@@ -17,6 +17,8 @@
 
     <modules>
         <module>article</module>
+        <module>user</module>
+        <module>scraping</module>
     </modules>
 
     <properties>

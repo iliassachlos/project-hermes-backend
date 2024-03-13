@@ -7,7 +7,9 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
+        <module name="user" />
         <module name="article" />
+        <module name="scraping" />
       </profile>
     </annotationProcessing>
   </component>
@@ -15,6 +17,8 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="article" options="-parameters" />
       <module name="project-hermes-backend" options="" />
+      <module name="scraping" options="-parameters" />
+      <module name="user" options="-parameters" />
     </option>
   </component>
 </project>
