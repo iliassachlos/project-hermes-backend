@@ -31,13 +31,13 @@ public class UserController {
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.FOUND)
+    @ResponseStatus(HttpStatus.OK)
     public UsersResponse getAllUsers(){
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.FOUND)
+    @ResponseStatus(HttpStatus.OK)
     public UserResponse getUserById(@PathVariable String id){
         return userService.getUserById(id);
     }
