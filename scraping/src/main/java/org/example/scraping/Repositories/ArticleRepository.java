@@ -11,8 +11,8 @@ import java.util.List;
 public interface ArticleRepository extends MongoRepository<Article, String> {
     Article findByUrl(String url);
 
-    List<Article> findByTimeBefore(LocalDate time);
+    List<Article> findByTimeBefore(String time);
 
-    void deleteByTimeBefore(LocalDate time);
+    void deleteByTimeBefore(String time);
 
 }

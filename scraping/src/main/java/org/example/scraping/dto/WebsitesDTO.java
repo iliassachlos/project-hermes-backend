@@ -1,6 +1,7 @@
 package org.example.scraping.dto;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class WebsitesDTO {
@@ -109,5 +110,12 @@ public class WebsitesDTO {
         tovimaCategories.put("lifestyle", "https://www.tovima.gr/category/culture/");
         tovimaCategories.put("technology", "https://www.tovima.gr/category/science/");
         websites.put("tovima", tovimaCategories);
+
+        HashMap<String, String> newsweekCategories = new HashMap<>();
+        newsweekCategories.put("politics", "https://www.newsweek.com/world");
+        newsweekCategories.put("health", "https://www.newsweek.com/health");
+        newsweekCategories.put("lifestyle", "https://www.newsweek.com/life");
+        newsweekCategories.put("technology", "https://www.newsweek.com/tech-science");
+        websites.put("newsweek", newsweekCategories);
     }
 }

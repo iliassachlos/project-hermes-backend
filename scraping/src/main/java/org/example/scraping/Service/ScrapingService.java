@@ -48,7 +48,7 @@ public class ScrapingService {
                     //Fetch article urls from the current page
                     for (String startingSelector: startingArticleLinks){
                         //Select elements matching the starting selector and extract their link
-                        Elements links = document.select(startingSelector + "a");
+                        Elements links = document.select(startingSelector + " a");
                         for (Element link: links){
                             //Add the absolute URL of each link to the articlelinks list
                             articleLinks.add(link.attr("abs:href"));
@@ -185,7 +185,8 @@ public class ScrapingService {
 
     public void deleteOldArticles() {
         //Calculate 3 days ago
-        LocalDate threeDaysAgo = LocalDate.now().minusDays(3);
+        String threeDaysAgo = String.valueOf(LocalDate.now().minusDays(3));
+        log.info("Three days ago it was " + threeDaysAgo);
         log.info("Deleting old articles...");
         try {
             //Find old articles
