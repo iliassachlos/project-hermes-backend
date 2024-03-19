@@ -13,7 +13,11 @@ import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -105,13 +109,19 @@ public class ScrapingService {
             }
 
             // Fetch timestamp of the article
+            boolean foundTimestamp = false;
             for (String selector : timeSelectors) {
                 // Select elements matching the current CSS selector
                 Elements elements = document.select(selector);
                 if (!elements.isEmpty()) {
                     articleData.setTime(elements.get(0).attr("datetime"));
+                    foundTimestamp = true;
                     break;
                 }
+            }
+            if(!foundTimestamp){
+                String formattedCurrentTime = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+                articleData.setTime(formattedCurrentTime);
             }
 
             // Fetch source of the article
@@ -122,6 +132,22 @@ public class ScrapingService {
                 source = sourceElement.attr("content").trim();
             } else {
                 source = "Unknown";
+            }
+            if(source.length() > 25){
+                source = " ";
+            }
+            if(source.equals("Unknown") || source.equals(" ")){
+                try {
+                    URI uri = new URI(articleURL);
+                    String[] hostParts = uri.getHost().split("//([^/]+)");
+                    if (hostParts.length > 0) {
+                        source = hostParts[0];
+                    } else {
+                        source = "Unknown";
+                    }
+                } catch (URISyntaxException e){
+                    log.error("URISyntaxException: {}", e.getMessage());
+                }
             }
             articleData.setSource(source);
 
