@@ -161,7 +161,12 @@ public class ScrapingService {
                 String alt = img.attr("alt");
                 // Check if both 'src' and 'alt' attributes are not empty, and if the image does not contain excluded words
                 if (!src.isEmpty() && !alt.isEmpty() && !containsExcludedWords(src, alt)) {
-                    articleData.setImage(src);
+                    if (!src.startsWith("https")){
+                        String modifiedSrc = "https://" + articleData.getSource() + src;
+                        articleData.setImage(modifiedSrc);
+                    } else {
+                        articleData.setImage(src);
+                    }
                     break;
                 }
             }
