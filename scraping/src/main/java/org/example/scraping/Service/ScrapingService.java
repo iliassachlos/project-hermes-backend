@@ -4,7 +4,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.example.scraping.Entities.Article;
+import org.example.scraping.Entities.Selector;
 import org.example.scraping.Repositories.ArticleRepository;
+import org.example.scraping.Repositories.SelectorRepository;
 import org.example.scraping.dto.WebsitesDTO;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -18,24 +20,33 @@ import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Slf4j
 @AllArgsConstructor
 @Service
 public class ScrapingService {
     private final ArticleRepository articleRepository;
+    private final SelectorRepository selectorRepository;
+    public Map<String, List<String>> getAllSelectors(){
+        Map<String, List<String>> selectorsMap = new HashMap<>();
+        List<Selector> allSelectors = selectorRepository.findAll();
 
-    private final List<String> startingArticleLinks = List.of("h2", "h3", ".media", ".gtr", "div[itemprop=itemListElement]");
-    private final List<String> titleSelectors = List.of("h1.fw-headline", ".entry-title", ".article-title", ".article__title", ".headline", ".itemTitle", ".title", "h1", "h2", "h3");
-    private final List<String> articleSelectors = List.of("div.articletext", "div.article", "div.entry-content", "div.content", "div.itemFullText", "div.main-text", "div.main-content", "div.story-fulltext", "div.td-post-content", "div.article__body", ".cntTxt", "div.single-article");
-    private final List<String> timeSelectors = List.of(".time", ".date", "time");
+        for (Selector selector: allSelectors){
+            selectorsMap.put(selector.getName(), selector.getSelectors());
+        }
+        return selectorsMap;
+    }
+
     public List<Article> fetchArticlesFromWebsites() {
         List<Article> articles = new ArrayList<>();
 
         try {
             log.info("STARTING FETCHING PROCESS...");
+            Map<String, List<String>> allSelectors = getAllSelectors();
+
+            //Fetch the selectors
+            List<String> startingArticleLinks = allSelectors.get("startingArticleLinks");
 
             //Iterate over websites and categories
             for (String website: WebsitesDTO.websites.keySet()){
@@ -77,6 +88,12 @@ public class ScrapingService {
     }
 
     private Article scrapeArticle(String articleURL, String category){
+        Map<String, List<String>> allSelectors = getAllSelectors();
+
+        List<String> titleSelectors = allSelectors.get("titleSelectors");
+        List<String> articleSelectors = allSelectors.get("articleSelectors");
+        List<String> timeSelectors = allSelectors.get("timeSelectors");
+
         Article articleData = new Article();
         RandomDataGenerator randomDataGenerator = new RandomDataGenerator();
 
@@ -192,6 +209,8 @@ public class ScrapingService {
     public void saveArticles(List<Article> articles) {
         List<Article> newArticles = new ArrayList<>();
         Integer newArticlesCounter = 0;
+
+        articles.sort(Comparator.nullsLast(Comparator.comparing(Article::getTime)));
 
         log.info("Inserting articles to MongoDB...");
         try {
