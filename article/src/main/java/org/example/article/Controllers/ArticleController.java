@@ -2,12 +2,12 @@ package org.example.article.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.article.Entities.Article;
 import org.example.article.Services.ArticleService;
-import org.example.article.dto.ArticleResponse;
-import org.example.article.dto.ArticlesResponse;
-import org.example.article.dto.FiltersRequest;
-import org.example.article.dto.ViewsResponse;
+import org.example.clients.article.dto.ArticleResponse;
+import org.example.clients.article.dto.ArticlesResponse;
+import org.example.clients.article.dto.FiltersRequest;
+import org.example.clients.article.dto.ViewsResponse;
+import org.example.clients.article.entities.Article;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +22,12 @@ import java.util.List;
 public class ArticleController {
     private final ArticleService articleService;
     //todo: add scraping service
+
+    @GetMapping("/testNumber")
+    @ResponseStatus(HttpStatus.OK)
+    public Integer testNumber(Integer number) {
+        return number + 5;
+    }
 
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)

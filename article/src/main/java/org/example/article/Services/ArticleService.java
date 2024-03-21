@@ -3,11 +3,11 @@ package org.example.article.Services;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.article.Repositories.ArticleRepository;
-import org.example.article.Entities.Article;
-import org.example.article.dto.ViewsResponse;
+import org.example.clients.article.entities.Article;
+import org.example.clients.article.ArticleClient;
+import org.example.clients.article.dto.ViewsResponse;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +16,7 @@ import java.util.List;
 @Slf4j
 public class ArticleService {
     private final ArticleRepository articleRepository;
+    private final ArticleClient articleClient;
 
     public List<Article> getAllArticles() {
         List<Article> articles = new ArrayList<>();

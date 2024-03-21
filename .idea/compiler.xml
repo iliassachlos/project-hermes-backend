@@ -7,15 +7,19 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="user" />
-        <module name="article" />
         <module name="scraping" />
+        <module name="clients" />
+        <module name="user" />
+        <module name="eureka-server" />
+        <module name="article" />
       </profile>
     </annotationProcessing>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="article" options="-parameters" />
+      <module name="clients" options="-parameters" />
+      <module name="eureka-server" options="-parameters" />
       <module name="project-hermes-backend" options="" />
       <module name="scraping" options="-parameters" />
       <module name="user" options="-parameters" />

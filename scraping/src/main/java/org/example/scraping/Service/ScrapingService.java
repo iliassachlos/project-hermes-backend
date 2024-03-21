@@ -28,11 +28,12 @@ import java.util.*;
 public class ScrapingService {
     private final ArticleRepository articleRepository;
     private final SelectorRepository selectorRepository;
-    public Map<String, List<String>> getAllSelectors(){
+
+    public Map<String, List<String>> getAllSelectors() {
         Map<String, List<String>> selectorsMap = new HashMap<>();
         List<Selector> allSelectors = selectorRepository.findAll();
 
-        for (Selector selector: allSelectors){
+        for (Selector selector : allSelectors) {
             selectorsMap.put(selector.getName(), selector.getSelectors());
         }
         return selectorsMap;
@@ -49,11 +50,11 @@ public class ScrapingService {
             List<String> startingArticleLinks = allSelectors.get("startingArticleLinks");
 
             //Iterate over websites and categories
-            for (String website: WebsitesDTO.websites.keySet()){
+            for (String website : WebsitesDTO.websites.keySet()) {
                 log.info("NOW FETCHING WEBPAGE : " + website);
 
                 //Iterate over the categories of each website
-                for (String category: WebsitesDTO.websites.get(website).keySet()){
+                for (String category : WebsitesDTO.websites.get(website).keySet()) {
                     //Get URL for the current category
                     String categoryUrl = WebsitesDTO.websites.get(website).get(category);
                     //Use Jsoup to connect to the webpage and retrieve its HTML Document
@@ -61,19 +62,19 @@ public class ScrapingService {
                     List<String> articleLinks = new ArrayList<>();
 
                     //Fetch article urls from the current page
-                    for (String startingSelector: startingArticleLinks){
+                    for (String startingSelector : startingArticleLinks) {
                         //Select elements matching the starting selector and extract their link
                         Elements links = document.select(startingSelector + " a");
-                        for (Element link: links){
+                        for (Element link : links) {
                             //Add the absolute URL of each link to the articlelinks list
                             articleLinks.add(link.attr("abs:href"));
                         }
-                        if(!articleLinks.isEmpty()){
+                        if (!articleLinks.isEmpty()) {
                             break;
                         }
                     }
                     // Scraping articles from fetched URLs
-                    for (int i = 0; i< Math.min(articleLinks.size(), 5); i++){
+                    for (int i = 0; i < Math.min(articleLinks.size(), 5); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
                         Article articleData = scrapeArticle(articleLinks.get(i), category);
                         articles.add(articleData);
@@ -81,13 +82,13 @@ public class ScrapingService {
                 }
             }
             log.info("FINISHED FETCHING");
-        } catch (IOException e){
+        } catch (IOException e) {
             log.error("Error fetching articles. " + e.getMessage());
         }
         return articles;
     }
 
-    private Article scrapeArticle(String articleURL, String category){
+    private Article scrapeArticle(String articleURL, String category) {
         Map<String, List<String>> allSelectors = getAllSelectors();
 
         List<String> titleSelectors = allSelectors.get("titleSelectors");
@@ -136,7 +137,7 @@ public class ScrapingService {
                     break;
                 }
             }
-            if(!foundTimestamp){
+            if (!foundTimestamp) {
                 String formattedCurrentTime = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
                 articleData.setTime(formattedCurrentTime);
             }
@@ -150,10 +151,10 @@ public class ScrapingService {
             } else {
                 source = "Unknown";
             }
-            if(source.length() > 25){
+            if (source.length() > 25) {
                 source = " ";
             }
-            if(source.equals("Unknown") || source.equals(" ")){
+            if (source.equals("Unknown") || source.equals(" ")) {
                 try {
                     URI uri = new URI(articleURL);
                     String[] hostParts = uri.getHost().split("//([^/]+)");
@@ -162,7 +163,7 @@ public class ScrapingService {
                     } else {
                         source = "Unknown";
                     }
-                } catch (URISyntaxException e){
+                } catch (URISyntaxException e) {
                     log.error("URISyntaxException: {}", e.getMessage());
                 }
             }
@@ -178,7 +179,7 @@ public class ScrapingService {
                 String alt = img.attr("alt");
                 // Check if both 'src' and 'alt' attributes are not empty, and if the image does not contain excluded words
                 if (!src.isEmpty() && !alt.isEmpty() && !containsExcludedWords(src, alt)) {
-                    if (!src.startsWith("https")){
+                    if (!src.startsWith("https")) {
                         String modifiedSrc = "https://" + articleData.getSource() + src;
                         articleData.setImage(modifiedSrc);
                     } else {

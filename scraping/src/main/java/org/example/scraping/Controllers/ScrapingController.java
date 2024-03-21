@@ -2,6 +2,8 @@ package org.example.scraping.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.clients.article.ArticleClient;
+import org.example.clients.article.dto.ArticlesResponse;
 import org.example.scraping.Entities.Article;
 import org.example.scraping.Service.ScrapingService;
 import org.springframework.http.HttpStatus;
@@ -16,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ScrapingController {
     private final ScrapingService scrapingService;
+    public final ArticleClient articleClient;
 
     @GetMapping("/scrape")
     @ResponseStatus(HttpStatus.OK)
@@ -29,5 +32,17 @@ public class ScrapingController {
             scrapingService.deleteOldArticles();
         }
         return articles;
+    }
+
+    @GetMapping("/test")
+    @ResponseStatus(HttpStatus.OK)
+    public ArticlesResponse testArticle() {
+        ArticlesResponse articlesResponse = new ArticlesResponse(null);
+        try {
+            articlesResponse = articleClient.getAllArticles();
+        } catch (Exception e) {
+            log.error("Error while tesing scontroller");
+        }
+        return articlesResponse;
     }
 }

@@ -1,0 +1,15 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: eureka-server
+
+  data:
+    mongodb:
+      uri: ${MONGO_DB_URI}
+
+eureka:
+  client:
+    fetch-registry: false
+    register-with-eureka: false
