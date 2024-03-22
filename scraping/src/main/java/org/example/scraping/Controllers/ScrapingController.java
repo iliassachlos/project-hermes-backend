@@ -2,8 +2,8 @@ package org.example.scraping.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.clients.article.ArticleClient;
-import org.example.clients.article.dto.ArticlesResponse;
+import org.example.clients.ArticleClient;
+import org.example.clients.ArticlesResponse;
 import org.example.scraping.Entities.Article;
 import org.example.scraping.Service.ScrapingService;
 import org.springframework.http.HttpStatus;

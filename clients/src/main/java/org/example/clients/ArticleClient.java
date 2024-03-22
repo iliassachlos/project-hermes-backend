@@ -1,6 +1,5 @@
-package org.example.clients.article;
+package org.example.clients;
 
-import org.example.clients.article.dto.ArticlesResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;

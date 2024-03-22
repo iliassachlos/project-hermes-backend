@@ -1,6 +1,6 @@
 package org.example.article.Repositories;
 
-import org.example.clients.article.entities.Article;
+import org.example.clients.Article;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

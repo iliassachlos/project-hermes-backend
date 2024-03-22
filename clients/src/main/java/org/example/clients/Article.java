@@ -1,4 +1,4 @@
-package org.example.clients.article.entities;
+package org.example.clients;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
