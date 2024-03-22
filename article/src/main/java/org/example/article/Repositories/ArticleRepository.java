@@ -11,4 +11,10 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
     Article findByUuid(String uuid);
 
     List<Article> findByCategoryIn(List<String> categories);
+
+    Article findByUrl(String url);
+
+    List<Article> findByTimeBefore(String time);
+
+    void deleteByTimeBefore(String time);
 }

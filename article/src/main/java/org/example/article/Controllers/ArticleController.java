@@ -23,10 +23,10 @@ public class ArticleController {
     private final ArticleService articleService;
     //todo: add scraping service
 
-    @GetMapping("/testNumber")
+    @PostMapping("/save")
     @ResponseStatus(HttpStatus.OK)
-    public Integer testNumber(Integer number) {
-        return number + 5;
+    public List<Article> saveArticles(@RequestBody List<Article> articles) {
+        return articleService.saveArticles(articles);
     }
 
     @GetMapping("/all")

@@ -3,7 +3,7 @@ package org.example.scraping.Service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
-import org.example.scraping.Entities.Article;
+import org.example.clients.Article;
 import org.example.scraping.Entities.Selector;
 import org.example.scraping.Repositories.ArticleRepository;
 import org.example.scraping.Repositories.SelectorRepository;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -74,7 +73,7 @@ public class ScrapingService {
                         }
                     }
                     // Scraping articles from fetched URLs
-                    for (int i = 0; i < Math.min(articleLinks.size(), 5); i++) {
+                    for (int i = 0; i < Math.min(articleLinks.size(), 2); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
                         Article articleData = scrapeArticle(articleLinks.get(i), category);
                         articles.add(articleData);
@@ -205,48 +204,5 @@ public class ScrapingService {
             }
         }
         return false;
-    }
-
-    public void saveArticles(List<Article> articles) {
-        List<Article> newArticles = new ArrayList<>();
-        Integer newArticlesCounter = 0;
-
-        articles.sort(Comparator.nullsLast(Comparator.comparing(Article::getTime)));
-
-        log.info("Inserting articles to MongoDB...");
-        try {
-            for (Article article : articles) {
-                // Check if article already exists in MongoDB based on URL
-                Article existingArticle = articleRepository.findByUrl(article.getUrl());
-                if (existingArticle == null) {
-                    //IF article not exist, save it to MongoDB
-                    Article savedArticle = articleRepository.save(article);
-                    newArticles.add(savedArticle);
-                    newArticlesCounter++;
-                }
-            }
-            for (Article newArticle : newArticles) {
-                log.info("New article added: {}", newArticle.getTitle());
-            }
-            log.info("Articles added: {}", newArticlesCounter);
-        } catch (Exception e) {
-            log.error("Error occurred while saving articles", e);
-        }
-    }
-
-    public void deleteOldArticles() {
-        //Calculate 3 days ago
-        String threeDaysAgo = String.valueOf(LocalDate.now().minusDays(3));
-        log.info("Three days ago it was " + threeDaysAgo);
-        log.info("Deleting old articles...");
-        try {
-            //Find old articles
-            List<Article> oldArticles = articleRepository.findByTimeBefore(threeDaysAgo);
-            //Delete articles older than 3 days
-            articleRepository.deleteByTimeBefore(threeDaysAgo);
-            log.info(oldArticles.size() + " articles where deleted");
-        } catch (Exception e) {
-            log.error("Error occurred while deleting old articles", e);
-        }
     }
 }
