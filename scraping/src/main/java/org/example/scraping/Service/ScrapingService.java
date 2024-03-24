@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.example.clients.Article;
+import org.example.clients.ArticlesResponse;
 import org.example.scraping.Entities.Selector;
 import org.example.scraping.Repositories.ArticleRepository;
 import org.example.scraping.Repositories.SelectorRepository;
@@ -39,7 +40,7 @@ public class ScrapingService {
         return selectorsMap;
     }
 
-    public List<Article> fetchArticlesFromWebsites() {
+    public ArticlesResponse fetchArticlesFromWebsites() {
         List<Article> articles = new ArrayList<>();
 
         try {
@@ -85,7 +86,9 @@ public class ScrapingService {
         } catch (IOException e) {
             log.error("Error fetching articles. " + e.getMessage());
         }
-        return articles;
+        return ArticlesResponse.builder()
+                .articles(articles)
+                .build();
     }
 
     private Article scrapeArticle(String articleURL, String category) {
@@ -207,8 +210,9 @@ public class ScrapingService {
         return false;
     }
 
-    public void saveArticles(List<Article> articles) {
+    public void saveArticles(ArticlesResponse articlesResponse) {
         List<Article> newArticles = new ArrayList<>();
+        List<Article> articles = articlesResponse.getArticles();
         Integer newArticlesCounter = 0;
 
         articles.sort(Comparator.nullsLast(Comparator.comparing(Article::getTime)));
@@ -231,6 +235,8 @@ public class ScrapingService {
             log.info("Articles added: {}", newArticlesCounter);
         } catch (Exception e) {
             log.error("Error occurred while saving articles", e);
+        }finally {
+            deleteOldArticles();
         }
     }
 
