@@ -5,9 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.example.scraping.Entities.Article;
 import org.example.scraping.Entities.Selector;
+import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.ArticleRepository;
 import org.example.scraping.Repositories.SelectorRepository;
-import org.example.scraping.dto.WebsitesDTO;
+import org.example.scraping.Repositories.WebsitesRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -28,6 +29,7 @@ import java.util.*;
 public class ScrapingService {
     private final ArticleRepository articleRepository;
     private final SelectorRepository selectorRepository;
+    private final WebsitesRepository websitesRepository;
 
     public Map<String, List<String>> getAllSelectors() {
         Map<String, List<String>> selectorsMap = new HashMap<>();
@@ -37,6 +39,16 @@ public class ScrapingService {
             selectorsMap.put(selector.getName(), selector.getSelectors());
         }
         return selectorsMap;
+    }
+
+    public Map<String, Map<String, String>> getAllWebsiteCategories(){
+        Map<String, Map<String, String>> websiteCategoriesMap = new HashMap<>();
+        List<Website> allWebsites = websitesRepository.findAll();
+
+        for (Website website: allWebsites){
+            websiteCategoriesMap.put(website.getTitle(), website.getCategories());
+        }
+        return websiteCategoriesMap;
     }
 
     public List<Article> fetchArticlesFromWebsites() {
@@ -49,32 +61,38 @@ public class ScrapingService {
             //Fetch the selectors
             List<String> startingArticleLinks = allSelectors.get("startingArticleLinks");
 
-            //Iterate over websites and categories
-            for (String website : WebsitesDTO.websites.keySet()) {
-                log.info("NOW FETCHING WEBPAGE : " + website);
+           Map<String, Map<String, String>> allWebsiteCategories = getAllWebsiteCategories();
+           List<Website> allWebsites = websitesRepository.findAll();
 
-                //Iterate over the categories of each website
-                for (String category : WebsitesDTO.websites.get(website).keySet()) {
-                    //Get URL for the current category
-                    String categoryUrl = WebsitesDTO.websites.get(website).get(category);
-                    //Use Jsoup to connect to the webpage and retrieve its HTML Document
+            //Iterate over websites and categories
+            for(Website website: allWebsites){
+                String websiteTitle = website.getTitle();
+                Map<String, String> categories = website.getCategories();
+                log.info("NOW FETCHING WEBPAGE: " + websiteTitle );
+
+                for (Map.Entry<String, String> entry: categories.entrySet()){
+                    String category = entry.getKey();
+                    String categoryUrl = entry.getValue();
+                    log.info("Fetching articles for category: {} - URL: {}", category, categoryUrl);
+
+                    // Use Jsoup to connect to the webpage and retrieve its HTML Document
                     Document document = Jsoup.connect(categoryUrl).get();
                     List<String> articleLinks = new ArrayList<>();
 
-                    //Fetch article urls from the current page
-                    for (String startingSelector : startingArticleLinks) {
-                        //Select elements matching the starting selector and extract their link
+                    // Fetch article URLs from the current page
+                    for (String startingSelector : allSelectors.get("startingArticleLinks")){
+                        // Select elements matching the starting selector and extract their link
                         Elements links = document.select(startingSelector + " a");
-                        for (Element link : links) {
-                            //Add the absolute URL of each link to the articlelinks list
+                        for (Element link : links){
+                            // Add the absolute URL of each link to the article links list
                             articleLinks.add(link.attr("abs:href"));
                         }
-                        if (!articleLinks.isEmpty()) {
+                        if(!articleLinks.isEmpty()){
                             break;
                         }
                     }
                     // Scraping articles from fetched URLs
-                    for (int i = 0; i < Math.min(articleLinks.size(), 5); i++) {
+                    for (int i=0; i<Math.min(articleLinks.size(), 5); i++){
                         // Call the scrapeArticle method to extract the article data from each URL
                         Article articleData = scrapeArticle(articleLinks.get(i), category);
                         articles.add(articleData);
