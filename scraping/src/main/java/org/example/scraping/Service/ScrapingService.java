@@ -3,11 +3,12 @@ package org.example.scraping.Service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
-import org.example.scraping.Entities.Article;
+import org.example.clients.Article;
 import org.example.scraping.Entities.Selector;
 import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.ArticleRepository;
 import org.example.scraping.Repositories.SelectorRepository;
+//import org.example.scraping.dto.WebsitesDTO;
 import org.example.scraping.Repositories.WebsitesRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -61,8 +62,8 @@ public class ScrapingService {
             //Fetch the selectors
             List<String> startingArticleLinks = allSelectors.get("startingArticleLinks");
 
-           Map<String, Map<String, String>> allWebsiteCategories = getAllWebsiteCategories();
-           List<Website> allWebsites = websitesRepository.findAll();
+            Map<String, Map<String, String>> allWebsiteCategories = getAllWebsiteCategories();
+            List<Website> allWebsites = websitesRepository.findAll();
 
             //Iterate over websites and categories
             for(Website website: allWebsites){
@@ -73,7 +74,7 @@ public class ScrapingService {
                 for (Map.Entry<String, String> entry: categories.entrySet()){
                     String category = entry.getKey();
                     String categoryUrl = entry.getValue();
-                    log.info("Fetching articles for category: {} - URL: {}", category, categoryUrl);
+
 
                     // Use Jsoup to connect to the webpage and retrieve its HTML Document
                     Document document = Jsoup.connect(categoryUrl).get();
