@@ -1,6 +1,6 @@
 package org.example.scraping.Repositories;
 
-import org.example.clients.Article;
+import org.example.clients.article.Entities.Article;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

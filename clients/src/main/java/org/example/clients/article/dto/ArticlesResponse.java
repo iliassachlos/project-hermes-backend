@@ -1,9 +1,10 @@
-package org.example.clients;
+package org.example.clients.article.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.example.clients.article.Entities.Article;
 
 import java.util.List;
 

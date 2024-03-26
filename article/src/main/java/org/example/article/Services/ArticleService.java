@@ -3,9 +3,9 @@ package org.example.article.Services;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.article.Repositories.ArticleRepository;
-import org.example.clients.Article;
-import org.example.clients.ArticlesResponse;
-import org.example.clients.ViewsResponse;
+import org.example.clients.article.Entities.Article;
+import org.example.clients.article.dto.ArticlesResponse;
+import org.example.clients.article.dto.ViewsResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

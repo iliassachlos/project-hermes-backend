@@ -3,10 +3,10 @@ package org.example.article.Controllers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.article.Services.ArticleService;
-import org.example.clients.ArticlesResponse;
-import org.example.clients.FiltersRequest;
-import org.example.clients.ViewsResponse;
-import org.example.clients.Article;
+import org.example.clients.article.dto.ArticlesResponse;
+import org.example.clients.article.dto.FiltersRequest;
+import org.example.clients.article.dto.ViewsResponse;
+import org.example.clients.article.Entities.Article;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 

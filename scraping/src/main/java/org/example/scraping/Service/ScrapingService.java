@@ -3,7 +3,7 @@ package org.example.scraping.Service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
-import org.example.clients.Article;
+import org.example.clients.article.Entities.Article;
 import org.example.scraping.Entities.Selector;
 import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.ArticleRepository;
