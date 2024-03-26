@@ -25,6 +25,7 @@ public class ScrapingController {
     public List<Article> fetchArticles() {
         List<Article> articles = scrapingService.fetchArticlesFromWebsites();
         scrapingService.saveArticles(articles);
+        scrapingService.deleteOldArticles();
         return articles;
     }
 }
