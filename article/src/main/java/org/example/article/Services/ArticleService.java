@@ -3,9 +3,9 @@ package org.example.article.Services;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.article.Repositories.ArticleRepository;
-import org.example.clients.Article;
-import org.example.clients.ArticleClient;
-import org.example.clients.ViewsResponse;
+import org.example.clients.article.Entities.Article;
+import org.example.clients.article.dto.ArticlesResponse;
+import org.example.clients.article.dto.ViewsResponse;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -67,6 +67,7 @@ public class ArticleService {
         List<Article> articles = new ArrayList<>();
         try {
             articles = articleRepository.findAll();
+            log.info("Fetched all articles");
         } catch (Exception e) {
             log.error("Error occurred while getting articles", e);
         }
@@ -77,20 +78,24 @@ public class ArticleService {
         Article article = new Article();
         try {
             article = articleRepository.findByUuid(uuid);
+            log.info("Fetched article by uuid {} ", uuid);
         } catch (Exception e) {
             log.error("Error occurred while getting article", e);
         }
-        return article;
+       return article;
     }
 
-    public List<Article> getArticlesByFilters(List<String> categories) {
+    public ArticlesResponse getArticlesByFilters(List<String> categories) {
         List<Article> articles = new ArrayList<>();
         try {
             articles = articleRepository.findByCategoryIn(categories);
+            log.info("Fetching filters");
         } catch (Exception e) {
             log.error("Error occurred while getting articles");
         }
-        return articles;
+        return ArticlesResponse.builder()
+                .articles(articles)
+                .build();
     }
 
     public ViewsResponse updateArticleViewCount(String uuid) {
@@ -102,7 +107,7 @@ public class ArticleService {
                 // Increment the view count
                 int updatedViews = article.getViews() + 1;
                 article.setViews(updatedViews);
-                articleRepository.save(article); // Save the updated article
+                articleRepository.save(article);
 
                 // Prepare the response
                 viewsResponse.setMessage("Article view count updated successfully");
