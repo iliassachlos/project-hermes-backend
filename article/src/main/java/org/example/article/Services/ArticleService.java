@@ -2,13 +2,16 @@ package org.example.article.Services;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.amqp.RabbitMQMessageProducer;
 import org.example.article.Repositories.ArticleRepository;
 import org.example.clients.article.Entities.Article;
 import org.example.clients.article.dto.ArticlesResponse;
 import org.example.clients.article.dto.ViewsResponse;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -16,16 +19,18 @@ import java.util.List;
 @Slf4j
 public class ArticleService {
     private final ArticleRepository articleRepository;
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
 
-    public List<Article> getAllArticles() {
+    public void getAllArticles() {
         List<Article> articles = new ArrayList<>();
         try {
             articles = articleRepository.findAll();
             log.info("Fetched all articles");
+            rabbitMQMessageProducer.publish(articles,"internal.exchange","internal.article.routing-key");
         } catch (Exception e) {
             log.error("Error occurred while getting articles", e);
         }
-        return articles;
+
     }
 
     public Article getArticleByUuid(String uuid) {
@@ -33,10 +38,11 @@ public class ArticleService {
         try {
             article = articleRepository.findByUuid(uuid);
             log.info("Fetched article by uuid {} ", uuid);
+            rabbitMQMessageProducer.publish(article, "internal.exchange", "internal.article.routing-key");
         } catch (Exception e) {
             log.error("Error occurred while getting article", e);
         }
-       return article;
+        return article;
     }
 
     public ArticlesResponse getArticlesByFilters(List<String> categories) {
