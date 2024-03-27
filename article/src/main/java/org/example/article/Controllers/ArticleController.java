@@ -22,8 +22,8 @@ public class ArticleController {
 
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
-    public List<Article> getAllArticles() {
-        return articleService.getAllArticles();
+    public void getAllArticles() {
+         articleService.getAllArticles();
     }
 
     @GetMapping("/{uuid}")

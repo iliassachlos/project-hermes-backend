@@ -2,6 +2,7 @@ package org.example.article.Services;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.amqp.RabbitMQMessageProducer;
 import org.example.article.Repositories.ArticleRepository;
 import org.example.clients.article.Entities.Article;
 import org.example.clients.article.dto.ArticlesResponse;
@@ -18,60 +19,18 @@ import java.util.List;
 @Slf4j
 public class ArticleService {
     private final ArticleRepository articleRepository;
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
 
-    public List<Article> saveArticles(List<Article> articles) {
-        List<Article> newArticles = new ArrayList<>();
-        Integer newArticlesCounter = 0;
-
-        articles.sort(Comparator.nullsLast(Comparator.comparing(Article::getTime)));
-
-        log.info("Inserting articles to MongoDB...");
-        try {
-            for (Article article : articles) {
-                // Check if article already exists in MongoDB based on URL
-                Article existingArticle = articleRepository.findByUrl(article.getUrl());
-                if (existingArticle == null) {
-                    //IF article not exist, save it to MongoDB
-                    Article savedArticle = articleRepository.save(article);
-                    newArticles.add(savedArticle);
-                    newArticlesCounter++;
-                }
-            }
-            for (Article newArticle : newArticles) {
-                log.info("New article added: {}", newArticle.getTitle());
-            }
-            log.info("Articles added: {}", newArticlesCounter);
-        } catch (Exception e) {
-            log.error("Error occurred while saving articles", e);
-        }
-        return newArticles;
-    }
-
-    public void deleteOldArticles() {
-        //Calculate 3 days ago
-        String threeDaysAgo = String.valueOf(LocalDate.now().minusDays(3));
-        log.info("Three days ago it was " + threeDaysAgo);
-        log.info("Deleting old articles...");
-        try {
-            //Find old articles
-            List<Article> oldArticles = articleRepository.findByTimeBefore(threeDaysAgo);
-            //Delete articles older than 3 days
-            articleRepository.deleteByTimeBefore(threeDaysAgo);
-            log.info(oldArticles.size() + " articles where deleted");
-        } catch (Exception e) {
-            log.error("Error occurred while deleting old articles", e);
-        }
-    }
-
-    public List<Article> getAllArticles() {
+    public void getAllArticles() {
         List<Article> articles = new ArrayList<>();
         try {
             articles = articleRepository.findAll();
             log.info("Fetched all articles");
+            rabbitMQMessageProducer.publish(articles,"internal.exchange","internal.article.routing-key");
         } catch (Exception e) {
             log.error("Error occurred while getting articles", e);
         }
-        return articles;
+
     }
 
     public Article getArticleByUuid(String uuid) {
@@ -79,10 +38,11 @@ public class ArticleService {
         try {
             article = articleRepository.findByUuid(uuid);
             log.info("Fetched article by uuid {} ", uuid);
+            rabbitMQMessageProducer.publish(article, "internal.exchange", "internal.article.routing-key");
         } catch (Exception e) {
             log.error("Error occurred while getting article", e);
         }
-       return article;
+        return article;
     }
 
     public ArticlesResponse getArticlesByFilters(List<String> categories) {
