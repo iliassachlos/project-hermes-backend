@@ -12,13 +12,14 @@ services:
       - "5672:5672"
       - "15672:15672"
 
-  postgresql:
-    image: postgres:alpine3.19
-    container_name: postgres
+  mysql:
+    image: mysql:latest
+    container_name: mysql
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: password123
-      POSTGRES_DB: projecthermesdb
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: projecthermesdb
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: password123
     ports:
-      - "5432:5432"
+      - "3306:3306"
 

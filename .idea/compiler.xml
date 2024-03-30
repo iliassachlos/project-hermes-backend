@@ -11,6 +11,7 @@
         <module name="scraping" />
         <module name="clients" />
         <module name="amqp" />
+        <module name="mongoArticle" />
         <module name="user" />
         <module name="eureka-server" />
         <module name="article" />
@@ -24,6 +25,7 @@
       <module name="article" options="-parameters" />
       <module name="clients" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
+      <module name="mongoArticle" options="-parameters" />
       <module name="project-hermes-backend" options="" />
       <module name="scraping" options="-parameters" />
       <module name="user" options="-parameters" />
