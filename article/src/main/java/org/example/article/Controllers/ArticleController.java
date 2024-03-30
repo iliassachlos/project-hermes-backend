@@ -10,8 +10,6 @@ import org.example.clients.article.Entities.Article;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @Slf4j
 @CrossOrigin(origins = "*")
@@ -26,16 +24,16 @@ public class ArticleController {
          articleService.getAllArticles();
     }
 
-    @GetMapping("/{uuid}")
+    @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Article getArticleByUuid(@PathVariable String uuid) {
-        return articleService.getArticleByUuid(uuid);
+    public Article getArticleById(@PathVariable String id) {
+        return articleService.getArticleById(id);
     }
 
-    @PutMapping("/{uuid}/views")
+    @PutMapping("/{id}/views")
     @ResponseStatus(HttpStatus.OK)
-    public ViewsResponse updateArticleViewCount(@PathVariable String uuid) {
-        return articleService.updateArticleViewCount(uuid);
+    public ViewsResponse updateArticleViewCount(@PathVariable String id) {
+        return articleService.updateArticleViewCount(id);
     }
 
     @PostMapping("/filters")

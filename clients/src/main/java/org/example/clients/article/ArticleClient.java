@@ -12,8 +12,8 @@ public interface ArticleClient {
     @GetMapping("api/articles/all")
     ArticlesResponse getAllArticles();
 
-    @PutMapping("api/articles/{uuid}/views")
-    ViewsResponse updateArticleViewCount(@PathVariable String uuid);
+    @PutMapping("api/articles/{id}/views")
+    ViewsResponse updateArticleViewCount(@PathVariable String id);
 
     @PostMapping("api/articles/filters")
     ArticlesResponse getArticlesByFilters(@RequestBody FiltersRequest filterRequest);

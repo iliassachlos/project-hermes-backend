@@ -1,20 +1,18 @@
 package org.example.article.Repositories;
 
 import org.example.clients.article.Entities.Article;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ArticleRepository extends MongoRepository<Article, String> {
-    Article findByUuid(String uuid);
+public interface ArticleRepository extends JpaRepository<Article, String> {
 
-    List<Article> findByCategoryIn(List<String> categories);
 
-    Article findByUrl(String url);
+    Article findArticleById(String id);
 
-    List<Article> findByTimeBefore(String time);
-
-    void deleteByTimeBefore(String time);
+    List<Article> findArticlesByCategoryIn(List<String> categories);
 }

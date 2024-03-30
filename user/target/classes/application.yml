@@ -4,10 +4,15 @@ server:
 spring:
   application:
     name: user
-
-  data:
-    mongodb:
-      uri: ${MONGO_DB_URI}
+  datasource:
+    url: jdbc:postgresql://localhost:5432/projecthermesdb
+    username: admin
+    password: password123
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
 
 eureka:
   client:

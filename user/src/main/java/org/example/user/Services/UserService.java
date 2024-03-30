@@ -52,14 +52,13 @@ public class UserService {
                     .email(email)
                     .password(encryptedPassword)
                     .isAdmin(false)
-                    .bookmarkedArticles(new ArrayList<>())
                     .build();
 
             //Save new user to database
             userRepository.save(newUser);
 
             // Generate JWT token
-            token = JwtTokenUtil.generateToken(newUser.get_id());
+            token = JwtTokenUtil.generateToken(newUser.getId());
         } catch (Exception e) {
             log.error("Error occurred while registering user", e);
         }
@@ -97,7 +96,7 @@ public class UserService {
             String encryptedPassword = foundUser.getPassword();
             if (passwordEncoder.matches(password, encryptedPassword)) {
                 // Passwords match, login successful
-                token = JwtTokenUtil.generateToken(foundUser.get_id());
+                token = JwtTokenUtil.generateToken(foundUser.getId());
             } else {
                 // Passwords don't match
                 log.error("Invalid pasword. Please try again!");
@@ -136,7 +135,7 @@ public class UserService {
         User user = new User();
         try {
             //Check if user exists in database
-            user = userRepository.findUserBy_id(id);
+            user = userRepository.findUserById(id);
             if (user == null) {
                 log.error("User was not found");
                 return null;

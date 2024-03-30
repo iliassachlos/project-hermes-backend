@@ -11,3 +11,14 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+
+  postgresql:
+    image: postgres:alpine3.19
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: password123
+      POSTGRES_DB: projecthermesdb
+    ports:
+      - "5432:5432"
+

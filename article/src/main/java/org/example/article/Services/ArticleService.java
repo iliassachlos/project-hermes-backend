@@ -9,9 +9,7 @@ import org.example.clients.article.dto.ArticlesResponse;
 import org.example.clients.article.dto.ViewsResponse;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -33,11 +31,11 @@ public class ArticleService {
 
     }
 
-    public Article getArticleByUuid(String uuid) {
+    public Article getArticleById(String id) {
         Article article = new Article();
         try {
-            article = articleRepository.findByUuid(uuid);
-            log.info("Fetched article by uuid {} ", uuid);
+            article = articleRepository.findArticleById(id);
+            log.info("Fetched article by id {} ", id);
             rabbitMQMessageProducer.publish(article, "internal.exchange", "internal.article.routing-key");
         } catch (Exception e) {
             log.error("Error occurred while getting article", e);
@@ -48,7 +46,7 @@ public class ArticleService {
     public ArticlesResponse getArticlesByFilters(List<String> categories) {
         List<Article> articles = new ArrayList<>();
         try {
-            articles = articleRepository.findByCategoryIn(categories);
+            articles = articleRepository.findArticlesByCategoryIn(categories);
             log.info("Fetching filters");
         } catch (Exception e) {
             log.error("Error occurred while getting articles");
@@ -58,11 +56,11 @@ public class ArticleService {
                 .build();
     }
 
-    public ViewsResponse updateArticleViewCount(String uuid) {
+    public ViewsResponse updateArticleViewCount(String id) {
         ViewsResponse viewsResponse = new ViewsResponse();
         try {
-            // Retrieve the article by UUID
-            Article article = articleRepository.findByUuid(uuid);
+            // Retrieve the article by ID
+            Article article = articleRepository.findArticleById(id);
             if (article != null) {
                 // Increment the view count
                 int updatedViews = article.getViews() + 1;
@@ -74,7 +72,7 @@ public class ArticleService {
                 viewsResponse.setArticleViews(updatedViews);
             } else {
                 // If article not found, set appropriate message in response
-                viewsResponse.setMessage("Article not found with UUID: " + uuid);
+                viewsResponse.setMessage("Article not found with ID: " + id);
                 viewsResponse.setArticleViews(null);
             }
         } catch (Exception e) {

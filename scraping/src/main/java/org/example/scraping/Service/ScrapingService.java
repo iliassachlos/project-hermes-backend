@@ -8,7 +8,6 @@ import org.example.scraping.Entities.Selector;
 import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.ArticleRepository;
 import org.example.scraping.Repositories.SelectorRepository;
-//import org.example.scraping.dto.WebsitesDTO;
 import org.example.scraping.Repositories.WebsitesRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -42,11 +41,11 @@ public class ScrapingService {
         return selectorsMap;
     }
 
-    public Map<String, Map<String, String>> getAllWebsiteCategories(){
+    public Map<String, Map<String, String>> getAllWebsiteCategories() {
         Map<String, Map<String, String>> websiteCategoriesMap = new HashMap<>();
         List<Website> allWebsites = websitesRepository.findAll();
 
-        for (Website website: allWebsites){
+        for (Website website : allWebsites) {
             websiteCategoriesMap.put(website.getTitle(), website.getCategories());
         }
         return websiteCategoriesMap;
@@ -66,12 +65,12 @@ public class ScrapingService {
             List<Website> allWebsites = websitesRepository.findAll();
 
             //Iterate over websites and categories
-            for(Website website: allWebsites){
+            for (Website website : allWebsites) {
                 String websiteTitle = website.getTitle();
                 Map<String, String> categories = website.getCategories();
-                log.info("NOW FETCHING WEBPAGE: " + websiteTitle );
+                log.info("NOW FETCHING WEBPAGE: " + websiteTitle);
 
-                for (Map.Entry<String, String> entry: categories.entrySet()){
+                for (Map.Entry<String, String> entry : categories.entrySet()) {
                     String category = entry.getKey();
                     String categoryUrl = entry.getValue();
 
@@ -81,19 +80,19 @@ public class ScrapingService {
                     List<String> articleLinks = new ArrayList<>();
 
                     // Fetch article URLs from the current page
-                    for (String startingSelector : allSelectors.get("startingArticleLinks")){
+                    for (String startingSelector : allSelectors.get("startingArticleLinks")) {
                         // Select elements matching the starting selector and extract their link
                         Elements links = document.select(startingSelector + " a");
-                        for (Element link : links){
+                        for (Element link : links) {
                             // Add the absolute URL of each link to the article links list
                             articleLinks.add(link.attr("abs:href"));
                         }
-                        if(!articleLinks.isEmpty()){
+                        if (!articleLinks.isEmpty()) {
                             break;
                         }
                     }
                     // Scraping articles from fetched URLs
-                    for (int i=0; i<Math.min(articleLinks.size(), 5); i++){
+                    for (int i = 0; i < Math.min(articleLinks.size(), 5); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
                         Article articleData = scrapeArticle(articleLinks.get(i), category);
                         articles.add(articleData);
@@ -236,7 +235,7 @@ public class ScrapingService {
         try {
             for (Article article : articles) {
                 // Check if article already exists in MongoDB based on URL
-                Article existingArticle = articleRepository.findByUrl(article.getUrl());
+                Article existingArticle = articleRepository.findArticleByUrl(article.getUrl());
                 if (existingArticle == null) {
                     //IF article not exist, save it to MongoDB
                     Article savedArticle = articleRepository.save(article);
@@ -260,9 +259,9 @@ public class ScrapingService {
         log.info("Deleting old articles...");
         try {
             //Find old articles
-            List<Article> oldArticles = articleRepository.findByTimeBefore(threeDaysAgo);
+            List<Article> oldArticles = articleRepository.findArticlesByTimeBefore(threeDaysAgo);
             //Delete articles older than 3 days
-            articleRepository.deleteByTimeBefore(threeDaysAgo);
+            articleRepository.deleteArticlesByTimeBefore(threeDaysAgo);
             log.info(oldArticles.size() + " articles where deleted");
         } catch (Exception e) {
             log.error("Error occurred while deleting old articles", e);

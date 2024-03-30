@@ -1,17 +1,17 @@
 package org.example.scraping.Repositories;
 
 import org.example.clients.article.Entities.Article;
-import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
 @Repository
-public interface ArticleRepository extends MongoRepository<Article, String> {
-    Article findByUrl(String url);
+public interface ArticleRepository extends JpaRepository<Article, String> {
+    Article findArticleByUrl(String url);
 
-    List<Article> findByTimeBefore(String time);
+    List<Article> findArticlesByTimeBefore(String time);
 
-    void deleteByTimeBefore(String time);
+    void deleteArticlesByTimeBefore(String time);
 
 }
