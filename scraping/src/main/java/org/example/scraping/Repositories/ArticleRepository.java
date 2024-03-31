@@ -13,5 +13,4 @@ public interface ArticleRepository extends JpaRepository<Article, String> {
     List<Article> findArticlesByTimeBefore(String time);
 
     void deleteArticlesByTimeBefore(String time);
-
 }

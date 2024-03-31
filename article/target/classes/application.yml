@@ -5,14 +5,14 @@ spring:
   application:
     name: article
   datasource:
-    url: jdbc:postgresql://localhost:5432/projecthermesdb
+    url: jdbc:mysql://localhost:3306/projecthermesdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
     username: admin
     password: password123
-    driver-class-name: org.postgresql.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     hibernate:
       ddl-auto: update
-
+    show-sql: true
 eureka:
   client:
     service-url:

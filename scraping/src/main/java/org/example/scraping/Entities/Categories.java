@@ -11,20 +11,19 @@ import java.util.Set;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "website")
-public class Website {
+@Table(name = "category")
+public class Categories {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
+    @Column(name = "id", nullable = false)
     private Integer id;
 
-    @Column(name = "title", nullable = false)
-    private String title;
+    @Column(name = "name", nullable = false)
+    private String name;
 
-    @Column(name = "icon", nullable = false)
-    private String icon;
+    @Column(name = "image", nullable = false)
+    private String image;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "website_categories")
-    private Set<WebsiteCategories> websiteCategories;
-
+    private Set<WebsiteCategories> websiteCategoriesSet;
 }

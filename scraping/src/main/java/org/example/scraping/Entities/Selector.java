@@ -5,20 +5,22 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "selectors")
+@Table(name = "selector")
 public class Selector {
     @Id
+    @Column(name = "id", updatable = false)
     private String id = UUID.randomUUID().toString();
 
+    @Column(name = "name",nullable = false)
     private String name;
 
-    @ElementCollection
-    private List<String> selectors;
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "selector_selectors")
+    private Set<SelectorSelectors> selectors;
 }

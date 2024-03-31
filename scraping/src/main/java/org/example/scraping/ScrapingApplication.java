@@ -11,7 +11,9 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
 @EnableFeignClients(basePackages = "org.example.clients")
 @EntityScan({"org.example.clients.article.Entities", "org.example.scraping.Entities"})
 public class ScrapingApplication {
+
     public static void main(String[] args) {
         SpringApplication.run(ScrapingApplication.class, args);
-    }
+     }
+
 }
