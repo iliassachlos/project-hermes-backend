@@ -24,6 +24,6 @@ public class Categories {
     @Column(name = "image", nullable = false)
     private String image;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "website_categories")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "category")
     private Set<WebsiteCategories> websiteCategoriesSet;
 }

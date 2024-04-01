@@ -21,6 +21,6 @@ public class Selector {
     @Column(name = "name",nullable = false)
     private String name;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "selector_selectors")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "selector")
     private Set<SelectorSelectors> selectors;
 }

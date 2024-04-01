@@ -24,7 +24,7 @@ public class Website {
     @Column(name = "icon", nullable = false)
     private String icon;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "website_categories")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "website")
     private Set<WebsiteCategories> websiteCategories;
 
 }
