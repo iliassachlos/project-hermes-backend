@@ -4,9 +4,10 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.amqp.RabbitMQMessageProducer;
 import org.example.article.Repositories.ArticleRepository;
-import org.example.clients.article.Entities.Article;
-import org.example.clients.article.dto.ArticlesResponse;
-import org.example.clients.article.dto.ViewsResponse;
+import org.example.clients.ElasticsearchClient;
+import org.example.clients.Entities.Article;
+import org.example.clients.dto.ArticlesResponse;
+import org.example.clients.dto.ViewsResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,26 +18,28 @@ import java.util.List;
 @Slf4j
 public class ArticleService {
     private final ArticleRepository articleRepository;
+    private final ElasticsearchClient elasticsearchClient;
     private final RabbitMQMessageProducer rabbitMQMessageProducer;
 
-    public void getAllArticles() {
+    public List<Article> getAllArticles() {
         List<Article> articles = new ArrayList<>();
         try {
             articles = articleRepository.findAll();
             log.info("Fetched all articles");
-            rabbitMQMessageProducer.publish(articles,"internal.exchange","internal.article.routing-key");
+
+            elasticsearchClient.saveArticles(articles);
+            log.info("Passing articles to elasticsearch microservice");
         } catch (Exception e) {
             log.error("Error occurred while getting articles", e);
         }
-
+        return articles;
     }
 
-    public Article getArticleById(String id) {
+    public Article getArticleByUuid(String uuid) {
         Article article = new Article();
         try {
-            article = articleRepository.findArticleById(id);
-            log.info("Fetched article by id {} ", id);
-            rabbitMQMessageProducer.publish(article, "internal.exchange", "internal.article.routing-key");
+            article = articleRepository.findByUuid(uuid);
+            log.info("Fetched article by uuid {} ", uuid);
         } catch (Exception e) {
             log.error("Error occurred while getting article", e);
         }
@@ -46,7 +49,7 @@ public class ArticleService {
     public ArticlesResponse getArticlesByFilters(List<String> categories) {
         List<Article> articles = new ArrayList<>();
         try {
-            articles = articleRepository.findArticlesByCategoryIn(categories);
+            articles = articleRepository.findByCategoryIn(categories);
             log.info("Fetching filters");
         } catch (Exception e) {
             log.error("Error occurred while getting articles");
@@ -56,11 +59,11 @@ public class ArticleService {
                 .build();
     }
 
-    public ViewsResponse updateArticleViewCount(String id) {
+    public ViewsResponse updateArticleViewCount(String uuid) {
         ViewsResponse viewsResponse = new ViewsResponse();
         try {
-            // Retrieve the article by ID
-            Article article = articleRepository.findArticleById(id);
+            // Retrieve the article by UUID
+            Article article = articleRepository.findByUuid(uuid);
             if (article != null) {
                 // Increment the view count
                 int updatedViews = article.getViews() + 1;
@@ -72,7 +75,7 @@ public class ArticleService {
                 viewsResponse.setArticleViews(updatedViews);
             } else {
                 // If article not found, set appropriate message in response
-                viewsResponse.setMessage("Article not found with ID: " + id);
+                viewsResponse.setMessage("Article not found with UUID: " + uuid);
                 viewsResponse.setArticleViews(null);
             }
         } catch (Exception e) {

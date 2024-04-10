@@ -2,8 +2,7 @@ package org.example.scraping.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.clients.article.Entities.Article;
-import org.example.clients.article.ArticleClient;
+import org.example.clients.Entities.Article;
 import org.example.scraping.Service.ScrapingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +17,6 @@ import java.util.List;
 public class ScrapingController {
 
     private final ScrapingService scrapingService;
-    public final ArticleClient articleClient;
 
     @GetMapping("/scrape")
     @ResponseStatus(HttpStatus.OK)

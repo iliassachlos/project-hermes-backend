@@ -24,6 +24,10 @@ spring:
           uri: lb://SCRAPING
           predicates:
             - Path=/api/scraping/**
+        - id: elasticsearch
+          uri: lb://ELASTICSEARCH
+          predicates:
+            - Path=/api/elastic/**
 
 eureka:
   client:

@@ -3,7 +3,7 @@ package org.example.article.rabbitmq;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.article.Services.ArticleService;
-import org.example.clients.article.Entities.Article;
+import org.example.clients.Entities.Article;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 

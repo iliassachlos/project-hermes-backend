@@ -4,8 +4,6 @@ server:
 spring:
   application:
     name: api-gateway
-  autoconfigure:
-    exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
   cloud:
     gateway:
       discovery:
@@ -24,6 +22,10 @@ spring:
           uri: lb://SCRAPING
           predicates:
             - Path=/api/scraping/**
+        - id: elasticsearch
+          uri: lb://ELASTICSEARCH
+          predicates:
+            - Path=/api/elastic/**
 
 eureka:
   client:

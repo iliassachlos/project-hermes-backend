@@ -1,17 +1,15 @@
 package org.example.article.Controllers;
 
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.example.article.Services.ArticleService;
-import org.example.clients.article.dto.ArticlesResponse;
-import org.example.clients.article.dto.FiltersRequest;
-import org.example.clients.article.dto.ViewsResponse;
-import org.example.clients.article.Entities.Article;
+import org.example.clients.dto.ArticlesResponse;
+import org.example.clients.dto.FiltersRequest;
+import org.example.clients.dto.ViewsResponse;
+import org.example.clients.Entities.Article;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@Slf4j
 @CrossOrigin(origins = "*")
 @RequestMapping("api/articles")
 @RequiredArgsConstructor
@@ -20,8 +18,8 @@ public class ArticleController {
 
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
-    public void getAllArticles() {
-         articleService.getAllArticles();
+    public List<Article> getAllArticles() {
+        return articleService.getAllArticles();
     }
 
     @GetMapping("/{id}")

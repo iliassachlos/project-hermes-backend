@@ -1,8 +1,8 @@
-package org.example.clients.article;
+package org.example.clients;
 
-import org.example.clients.article.dto.ArticlesResponse;
-import org.example.clients.article.dto.FiltersRequest;
-import org.example.clients.article.dto.ViewsResponse;
+import org.example.clients.dto.ArticlesResponse;
+import org.example.clients.dto.FiltersRequest;
+import org.example.clients.dto.ViewsResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 

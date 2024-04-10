@@ -10,6 +10,7 @@
         <module name="apigw" />
         <module name="scraping" />
         <module name="clients" />
+        <module name="elasticsearch" />
         <module name="amqp" />
         <module name="mongoArticle" />
         <module name="user" />
@@ -24,6 +25,7 @@
       <module name="apigw" options="-parameters" />
       <module name="article" options="-parameters" />
       <module name="clients" options="-parameters" />
+      <module name="elasticsearch" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="mongoArticle" options="-parameters" />
       <module name="project-hermes-backend" options="" />
