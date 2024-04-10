@@ -2,6 +2,7 @@ package org.example.scraping.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.clients.ElasticsearchClient;
 import org.example.clients.Entities.Article;
 import org.example.scraping.Service.ScrapingService;
 import org.springframework.http.HttpStatus;
@@ -17,6 +18,7 @@ import java.util.List;
 public class ScrapingController {
 
     private final ScrapingService scrapingService;
+    private final ElasticsearchClient elasticsearchClient;
 
     @GetMapping("/scrape")
     @ResponseStatus(HttpStatus.OK)
@@ -24,6 +26,7 @@ public class ScrapingController {
         List<Article> articles = scrapingService.fetchArticlesFromWebsites();
         scrapingService.saveArticles(articles);
         scrapingService.deleteOldArticles();
+        elasticsearchClient.saveArticles(articles);
         return articles;
     }
 }

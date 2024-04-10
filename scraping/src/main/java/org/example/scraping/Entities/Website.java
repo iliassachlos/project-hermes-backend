@@ -1,30 +1,27 @@
 package org.example.scraping.Entities;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.bson.types.ObjectId;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.Set;
+import java.util.Map;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "website")
+@Document(collection = "websites")
 public class Website {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", updatable = false, nullable = false)
-    private Integer id;
+    private ObjectId id;
 
-    @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "icon", nullable = false)
     private String icon;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "website")
-    private Set<WebsiteCategories> websiteCategories;
+    private String value;
 
+    private Map<String, String> categories;
 }

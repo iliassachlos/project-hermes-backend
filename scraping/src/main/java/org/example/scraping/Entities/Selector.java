@@ -1,26 +1,24 @@
 package org.example.scraping.Entities;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
-@Table(name = "selector")
+@Document(collection = "selectors")
 public class Selector {
     @Id
-    @Column(name = "id", updatable = false)
-    private String id = UUID.randomUUID().toString();
+    private String id;
 
-    @Column(name = "name",nullable = false)
     private String name;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "selector")
-    private Set<SelectorSelectors> selectors;
+    private List<String> selectors;
 }

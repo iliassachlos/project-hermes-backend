@@ -9,6 +9,8 @@ import org.example.clients.Entities.Article;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("api/articles")
@@ -25,7 +27,7 @@ public class ArticleController {
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     public Article getArticleById(@PathVariable String id) {
-        return articleService.getArticleById(id);
+        return articleService.getArticleByUuid(id);
     }
 
     @PutMapping("/{id}/views")

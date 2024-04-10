@@ -4,15 +4,11 @@ server:
 spring:
   application:
     name: article
-  datasource:
-    url: jdbc:mysql://localhost:3306/projecthermesdb?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: admin
-    password: password123
-    driver-class-name: com.mysql.cj.jdbc.Driver
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
+
+  data:
+    mongodb:
+      uri: ${MONGO_DB_URI}
+
 eureka:
   client:
     service-url:
