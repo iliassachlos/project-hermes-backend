@@ -24,9 +24,10 @@ public class ArticleService {
     public List<Article> getAllArticles() {
         List<Article> articles = new ArrayList<>();
         try {
+            //Get all articles from MongoDB
             articles = articleRepository.findAll();
             log.info("Fetched all articles");
-
+            //Pass them to elasticsearch microservice save function
             elasticsearchClient.saveArticles(articles);
             log.info("Passing articles to elasticsearch microservice");
         } catch (Exception e) {
