@@ -26,7 +26,6 @@ public class ScrapingController {
         List<Article> articles = scrapingService.fetchArticlesFromWebsites();
         scrapingService.saveArticles(articles);
         scrapingService.deleteOldArticles();
-        elasticsearchClient.saveArticles(articles);
         return articles;
     }
 }
