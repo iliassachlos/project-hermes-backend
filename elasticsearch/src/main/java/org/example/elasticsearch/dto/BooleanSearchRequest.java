@@ -13,6 +13,7 @@ import java.util.Map;
 @AllArgsConstructor
 @NoArgsConstructor
 public class BooleanSearchRequest {
-    private Map<String, String> must;
+    private List<Map<String, String>> must;
     private List<Map<String, String>> should;
+    private List<Map<String, String>> must_not;
 }

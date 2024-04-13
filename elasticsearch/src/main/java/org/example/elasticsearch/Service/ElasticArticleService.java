@@ -10,13 +10,13 @@ import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.example.clients.Entities.Article;
 import org.example.elasticsearch.Entities.ElasticArticle;
 import org.example.elasticsearch.Repository.ElasticArticleRepository;
+import org.example.elasticsearch.dto.BooleanSearchRequest;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 @Service
 @Slf4j
@@ -52,24 +52,31 @@ public class ElasticArticleService {
         }
     }
 
-    public SearchResponse<ElasticArticle> dynamicBoolQueryImpl(Map<String, String> mustParams, List<Map<String, String>> shouldParamsList) throws IOException {
+    public SearchResponse<ElasticArticle> dynamicBoolQueryImpl(BooleanSearchRequest searchParams) throws IOException {
         BoolQuery.Builder boolQueryBuilder = new BoolQuery.Builder();
 
         // Add must (AND) conditions
-        mustParams.forEach((key, value) -> {
-            boolQueryBuilder.must(Query.of(q -> q.term(t -> t.field(key).value(value))));
-        });
-
-        // Add should (OR) conditions
-        for (Map<String, String> shouldParams : shouldParamsList) {
-            BoolQuery.Builder innerBoolQueryBuilder = new BoolQuery.Builder();
-            shouldParams.forEach((key, value) -> {
-                innerBoolQueryBuilder.should(Query.of(q -> q.term(t -> t.field(key).value(value))));
+        for (Map<String, String> mustParams : searchParams.getMust()) {
+            mustParams.forEach((key, value) -> {
+                boolQueryBuilder.must(Query.of(q -> q.term(t -> t.field(key).value(value))));
             });
-            boolQueryBuilder.should(Query.of(q -> q.bool(innerBoolQueryBuilder.build())));
         }
 
-        Query query = Query.of(q -> q.bool(boolQueryBuilder.minimumShouldMatch("1").build()));
+        // Add should (OR) conditions
+        for (Map<String, String> shouldParams : searchParams.getShould()) {
+            shouldParams.forEach((key, value) -> {
+                boolQueryBuilder.should(Query.of(q -> q.term(t -> t.field(key).value(value))));
+            });
+        }
+
+        // Add must_not (NOT) conditions
+        for (Map<String, String> mustNotParams : searchParams.getMust_not()) {
+            mustNotParams.forEach((key, value) -> {
+                boolQueryBuilder.mustNot(Query.of(q -> q.term(t -> t.field(key).value(value))));
+            });
+        }
+
+        Query query = Query.of(q -> q.bool(boolQueryBuilder.build()));
         return elasticsearchClient.search(s -> s.index("articles").query(query), ElasticArticle.class);
     }
 }
