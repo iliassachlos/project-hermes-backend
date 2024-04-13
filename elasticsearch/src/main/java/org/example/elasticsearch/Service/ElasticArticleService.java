@@ -33,6 +33,7 @@ public class ElasticArticleService {
                 .title(article.getTitle())
                 .content(article.getContent())
                 .image(article.getImage())
+                .time(article.getTime())
                 .source(article.getSource())
                 .category(article.getCategory())
                 .views(article.getViews())
