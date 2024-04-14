@@ -1,4 +1,4 @@
-package org.example.user.Entities;
+package org.example.clients.Entities;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,6 +7,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -17,9 +18,14 @@ import java.util.UUID;
 public class User {
     @Id
     private String id = UUID.randomUUID().toString();
+
     private String email;
+
     private String username;
+
     private String password;
+
     private Boolean isAdmin;
 
+    private List<Article> bookmarkedArticles;
 }

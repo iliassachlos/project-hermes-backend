@@ -2,9 +2,7 @@ package org.example.article.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import org.example.article.Services.ArticleService;
-import org.example.clients.dto.ArticlesResponse;
-import org.example.clients.dto.FiltersRequest;
-import org.example.clients.dto.ViewsResponse;
+import org.example.clients.dto.article.ViewsResponse;
 import org.example.clients.Entities.Article;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -36,9 +34,4 @@ public class ArticleController {
         return articleService.updateArticleViewCount(id);
     }
 
-    @PostMapping("/filters")
-    @ResponseStatus(HttpStatus.OK)
-    public ArticlesResponse getArticlesByFilters(@RequestBody FiltersRequest filterRequest) {
-        return articleService.getArticlesByFilters(filterRequest.categories());
-    }
 }

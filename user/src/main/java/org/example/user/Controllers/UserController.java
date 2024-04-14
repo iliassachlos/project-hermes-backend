@@ -1,10 +1,14 @@
 package org.example.user.Controllers;
 
 import lombok.RequiredArgsConstructor;
+import org.example.clients.Entities.Article;
+import org.example.clients.Entities.User;
+import org.example.clients.dto.user.*;
 import org.example.user.Services.UserService;
-import org.example.user.dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -27,18 +31,40 @@ public class UserController {
     public LoginUserResponse loginUser(@RequestBody LoginUserRequest loginUserRequest) {
         String email = loginUserRequest.getEmail();
         String password = loginUserRequest.getPassword();
-        return userService.loginUser(email,password);
+        return userService.loginUser(email, password);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public UsersResponse getAllUsers(){
+    public List<User> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public UserResponse getUserById(@PathVariable String id){
+    public User getUserById(@PathVariable String id) {
         return userService.getUserById(id);
+    }
+
+    @GetMapping("/bookmarks/{userId}")
+    @ResponseStatus(HttpStatus.OK)
+    public List<Article> getAllBookmarkedArticlesById(@PathVariable String userId) {
+        return userService.getAllBookmarkedArticlesById(userId);
+    }
+
+    @PostMapping("/bookmarks/add")
+    @ResponseStatus(HttpStatus.OK)
+    public String addBookmarkArticle(@RequestBody BookmarkRequest bookmarkRequest) {
+        String userId = bookmarkRequest.getUserId();
+        String articleId = bookmarkRequest.getArticleId();
+        return userService.addBookmarkArticle(userId, articleId);
+    }
+
+    @DeleteMapping("/bookmarks/delete")
+    @ResponseStatus(HttpStatus.OK)
+    public String deleteBookmarkArticleById(@RequestBody BookmarkRequest bookmarkRequest) {
+        String userId = bookmarkRequest.getUserId();
+        String articleId = bookmarkRequest.getArticleId();
+        return userService.deleteBookmarkArticleById(userId, articleId);
     }
 }

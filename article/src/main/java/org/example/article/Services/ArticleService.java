@@ -6,8 +6,8 @@ import org.example.amqp.RabbitMQMessageProducer;
 import org.example.article.Repositories.ArticleRepository;
 import org.example.clients.ElasticsearchClient;
 import org.example.clients.Entities.Article;
-import org.example.clients.dto.ArticlesResponse;
-import org.example.clients.dto.ViewsResponse;
+import org.example.clients.UserClient;
+import org.example.clients.dto.article.ViewsResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,8 +18,10 @@ import java.util.List;
 @Slf4j
 public class ArticleService {
     private final ArticleRepository articleRepository;
-    private final ElasticsearchClient elasticsearchClient;
     private final RabbitMQMessageProducer rabbitMQMessageProducer;
+
+    private final ElasticsearchClient elasticsearchClient;
+    private final UserClient userClient;
 
     public List<Article> getAllArticles() {
         List<Article> articles = new ArrayList<>();
@@ -47,18 +49,7 @@ public class ArticleService {
         return article;
     }
 
-    public ArticlesResponse getArticlesByFilters(List<String> categories) {
-        List<Article> articles = new ArrayList<>();
-        try {
-            articles = articleRepository.findByCategoryIn(categories);
-            log.info("Fetching filters");
-        } catch (Exception e) {
-            log.error("Error occurred while getting articles");
-        }
-        return ArticlesResponse.builder()
-                .articles(articles)
-                .build();
-    }
+
 
     public ViewsResponse updateArticleViewCount(String uuid) {
         ViewsResponse viewsResponse = new ViewsResponse();
