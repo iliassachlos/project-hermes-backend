@@ -5,17 +5,19 @@ import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.WebsitesRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
 @AllArgsConstructor
 @Service
 public class WebsiteService {
     private final WebsitesRepository websitesRepository;
 
-    public Map<String, Map<String, String>> getAllWebsiteCategories(){
-        List<Website> allWebsites = websitesRepository.findAll();
-        return allWebsites.stream().collect(Collectors.toMap(Website::getTitle, Website::getCategories));
+    public Website saveWebsite(Website website) {
+        return websitesRepository.save(website);
+    }
+
+    public void deleteWebsiteByTitle(String title) {
+        Website website = websitesRepository.findByTitle(title);
+        if (website != null) {
+            websitesRepository.delete(website);
+        }
     }
 }
