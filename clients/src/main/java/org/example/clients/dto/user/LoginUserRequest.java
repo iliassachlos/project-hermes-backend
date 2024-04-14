@@ -1,17 +1,15 @@
-package org.example.user.dto;
+package org.example.clients.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.example.user.Entities.User;
-
-import java.util.List;
 
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class UsersResponse {
-    private List<User> users;
+public class LoginUserRequest {
+    private String email;
+    private String password;
 }

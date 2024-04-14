@@ -1,4 +1,4 @@
-package org.example.user.dto;
+package org.example.clients.dto.user;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -6,10 +6,11 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class LoginUserRequest {
+@Builder
+public class RegisterUserRequest {
+    private String username;
     private String email;
     private String password;
 }

@@ -1,4 +1,4 @@
-package org.example.clients.dto;
+package org.example.clients.dto.article;
 
 import lombok.Builder;
 import lombok.Data;

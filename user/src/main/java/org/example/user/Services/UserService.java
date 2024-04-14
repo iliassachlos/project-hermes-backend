@@ -3,24 +3,25 @@ package org.example.user.Services;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.user.Entities.User;
+import org.example.clients.ArticleClient;
+import org.example.clients.Entities.Article;
+import org.example.clients.Entities.User;
 import org.example.user.Repositories.UserRepository;
-import org.example.user.dto.LoginUserResponse;
-import org.example.user.dto.RegisterUserResponse;
-import org.example.user.dto.UserResponse;
-import org.example.user.dto.UsersResponse;
+import org.example.clients.dto.user.LoginUserResponse;
+import org.example.clients.dto.user.RegisterUserResponse;
 import org.example.user.utilities.JwtTokenUtil;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+    private final ArticleClient articleClient;
+
     private final PasswordEncoder passwordEncoder;
 
     public RegisterUserResponse registerUser(String username, String email, String password) {
@@ -52,6 +53,7 @@ public class UserService {
                     .email(email)
                     .password(encryptedPassword)
                     .isAdmin(false)
+                    .bookmarkedArticles(new ArrayList<>())
                     .build();
 
             //Save new user to database
@@ -116,7 +118,7 @@ public class UserService {
                 .build();
     }
 
-    public UsersResponse getAllUsers() {
+    public List<User> getAllUsers() {
         List<User> users = new ArrayList<>();
         try {
             users = userRepository.findAll();
@@ -125,13 +127,10 @@ public class UserService {
         }
 
         log.info("All users fetched successfully");
-        return UsersResponse.builder()
-                .users(users)
-                .build();
+        return users;
     }
 
-
-    public UserResponse getUserById(String id) {
+    public User getUserById(String id) {
         User user = new User();
         try {
             //Check if user exists in database
@@ -143,9 +142,92 @@ public class UserService {
         } catch (Exception e) {
             log.error("Error occurred while finding user by id {}", id);
         }
-        return UserResponse.builder()
-                .user(user)
-                .build();
+        return user;
     }
+
+    public List<Article> getAllBookmarkedArticlesById(String userId) {
+        List<Article> bookmarkedArticles = new ArrayList<>();
+        try {
+            User user = userRepository.findUserById(userId);
+            if (user == null) {
+                log.error("User was not found");
+                return null;
+            }
+            bookmarkedArticles = user.getBookmarkedArticles();
+        } catch (Exception e) {
+            log.error("An error occured while fetching bookmarked articles", e);
+        }
+        return bookmarkedArticles;
+    }
+
+    public String addBookmarkArticle(String userId, String articleId) {
+        try {
+            User user = userRepository.findUserById(userId);
+            Article article = articleClient.getArticleById(articleId);
+
+            if (user == null) {
+                log.error("User with ID {} was not found", userId);
+                return "User with ID " + userId + " not found";
+            }
+
+            if (article == null) {
+                log.error("Article with ID {} was not found", articleId);
+                return "Article with ID " + articleId + " not found";
+            }
+
+            Set<Article> bookmarkedArticles = new HashSet<>(user.getBookmarkedArticles());
+
+            // Add the article to the set; duplicates will not be added
+            boolean isAdded = bookmarkedArticles.add(article);
+            if (!isAdded) {
+                log.info("Article with ID {} is already bookmarked for user {}", articleId, userId);
+                return "Article with ID " + articleId + " is already bookmarked for user " + userId;
+            }
+
+            // Save the updated set back to the user's bookmarked articles
+            user.setBookmarkedArticles(new ArrayList<>(bookmarkedArticles));
+            userRepository.save(user);
+
+            log.info("Bookmark for user {} added successfully", userId);
+            return "Bookmark for user " + userId + " added successfully";
+        } catch (Exception e) {
+            log.error("Error adding bookmark for user: {}", userId, e);
+            return "Error adding bookmark for user: " + userId;
+        }
+    }
+
+    public String deleteBookmarkArticleById(String userId, String articleId) {
+        try {
+            User user = userRepository.findUserById(userId);
+            if (user == null) {
+                log.error("User with ID {} was not found", userId);
+                return "User with ID " + userId + " not found";
+            }
+
+            List<Article> bookmarkedArticles = user.getBookmarkedArticles();
+            if (bookmarkedArticles == null) {
+                log.error("No bookmarked articles found for user {}", userId);
+                return "No bookmarked articles found for user " + userId;
+            }
+
+            // Iterate over the bookmarked articles to find the one with the specified ID
+            boolean removed = bookmarkedArticles.removeIf(article -> article.getId().equals(articleId));
+            if (!removed) {
+                log.error("Article with ID {} not found in bookmarked articles for user {}", articleId, userId);
+                return "Article with ID " + articleId + " not found in bookmarked articles for user " + userId;
+            }
+
+            // Save the updated user without the deleted bookmarked article
+            userRepository.save(user);
+
+            log.info("Bookmark article with ID {} deleted successfully for user {}", articleId, userId);
+            return "Bookmark article with ID " + articleId + " deleted successfully for user " + userId;
+        } catch (Exception e) {
+            log.error("Error deleting bookmark article with ID {} for user: {}", articleId, userId, e);
+            return "Error deleting bookmark article for user " + userId;
+        }
+    }
+
+
 }
 
