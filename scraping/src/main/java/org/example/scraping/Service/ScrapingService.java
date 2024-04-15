@@ -15,9 +15,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import javax.print.Doc;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -92,7 +94,7 @@ public class ScrapingService {
                         }
                     }
                     // Scraping articles from fetched URLs
-                    for (int i = 0; i < Math.min(articleLinks.size(), 5); i++) {
+                    for (int i = 0; i < Math.min(articleLinks.size(), 1); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
                         Article articleData = scrapeArticle(articleLinks.get(i), category);
                         articles.add(articleData);
@@ -155,6 +157,28 @@ public class ScrapingService {
                 }
             }
 
+            if (articleData.getContent() == null || articleData.getContent().isEmpty()) {
+                Elements dynamicElements = document.body().select("*");
+                Element bestBlock = null;
+                int maxScore = 0;
+                for (Element element : dynamicElements) {
+                    int score = element.ownText().length();
+                    if (score > maxScore) {
+                        maxScore = score;
+                        bestBlock = element;
+                    }
+                }
+                if (bestBlock != null) {
+                    Element parent = bestBlock.parent();
+                    if (parent != null && parent.hasText()) {
+                        articleData.setContent(parent.text());
+                    } else {
+                        articleData.setContent(bestBlock.text());
+                    }
+                }
+            }
+
+
             // Fetch timestamp of the article
             boolean foundTimestamp = false;
             for (String selector : timeSelectors) {
@@ -162,7 +186,9 @@ public class ScrapingService {
                 Elements elements = document.select(selector);
                 if (!elements.isEmpty()) {
                     articleData.setTime(elements.get(0).attr("datetime"));
-                    foundTimestamp = true;
+                    if (!Objects.equals(articleData.getTime(), "")) {
+                        foundTimestamp = true;
+                    }
                     break;
                 }
             }
