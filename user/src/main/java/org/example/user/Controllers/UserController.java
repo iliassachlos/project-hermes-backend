@@ -55,7 +55,7 @@ public class UserController {
         return userService.addBookmarkArticle(userId, articleId);
     }
 
-    @DeleteMapping("/bookmarks/delete")
+    @PutMapping("/bookmarks/delete")
     public ResponseEntity<String> deleteBookmarkArticleById(@RequestBody BookmarkRequest bookmarkRequest) {
         String userId = bookmarkRequest.getUserId();
         String articleId = bookmarkRequest.getArticleId();

@@ -235,7 +235,7 @@ public class UserService {
             }
 
             // Iterate over the bookmarked articles to find the one with the specified ID
-            boolean removed = bookmarkedArticles.removeIf(article -> article.getId().equals(articleId));
+            boolean removed = bookmarkedArticles.removeIf(article -> article.getUuid().equals(articleId));
             if (!removed) {
                 log.error("Article with ID {} not found in bookmarked articles for user {}", articleId, userId);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article with ID " + articleId + " not found in bookmarked articles for user " + userId);
@@ -251,7 +251,5 @@ public class UserService {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting bookmark for user: " + userId);
         }
     }
-
-
 }
 
