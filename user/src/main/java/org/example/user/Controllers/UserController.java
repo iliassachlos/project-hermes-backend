@@ -6,6 +6,7 @@ import org.example.clients.Entities.User;
 import org.example.clients.dto.user.*;
 import org.example.user.Services.UserService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,8 +19,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/register")
-    @ResponseStatus(HttpStatus.CREATED)
-    public RegisterUserResponse registerUser(@RequestBody RegisterUserRequest registerUserRequest) {
+    public ResponseEntity<RegisterUserResponse> registerUser(@RequestBody RegisterUserRequest registerUserRequest) {
         String username = registerUserRequest.getUsername();
         String email = registerUserRequest.getEmail();
         String password = registerUserRequest.getPassword();
@@ -27,42 +27,36 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    @ResponseStatus(HttpStatus.FOUND)
-    public LoginUserResponse loginUser(@RequestBody LoginUserRequest loginUserRequest) {
+    public ResponseEntity<LoginUserResponse> loginUser(@RequestBody LoginUserRequest loginUserRequest) {
         String email = loginUserRequest.getEmail();
         String password = loginUserRequest.getPassword();
         return userService.loginUser(email, password);
     }
 
     @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<User> getAllUsers() {
+    public ResponseEntity<List<User>> getAllUsers() {
         return userService.getAllUsers();
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
-    public User getUserById(@PathVariable String id) {
+    public ResponseEntity<User> getUserById(@PathVariable String id) {
         return userService.getUserById(id);
     }
 
     @GetMapping("/bookmarks/{userId}")
-    @ResponseStatus(HttpStatus.OK)
-    public List<Article> getAllBookmarkedArticlesById(@PathVariable String userId) {
+    public ResponseEntity<List<Article>> getAllBookmarkedArticlesById(@PathVariable String userId) {
         return userService.getAllBookmarkedArticlesById(userId);
     }
 
     @PostMapping("/bookmarks/add")
-    @ResponseStatus(HttpStatus.OK)
-    public String addBookmarkArticle(@RequestBody BookmarkRequest bookmarkRequest) {
+    public ResponseEntity<String> addBookmarkArticle(@RequestBody BookmarkRequest bookmarkRequest) {
         String userId = bookmarkRequest.getUserId();
         String articleId = bookmarkRequest.getArticleId();
         return userService.addBookmarkArticle(userId, articleId);
     }
 
-    @DeleteMapping("/bookmarks/delete")
-    @ResponseStatus(HttpStatus.OK)
-    public String deleteBookmarkArticleById(@RequestBody BookmarkRequest bookmarkRequest) {
+    @PutMapping("/bookmarks/delete")
+    public ResponseEntity<String> deleteBookmarkArticleById(@RequestBody BookmarkRequest bookmarkRequest) {
         String userId = bookmarkRequest.getUserId();
         String articleId = bookmarkRequest.getArticleId();
         return userService.deleteBookmarkArticleById(userId, articleId);

@@ -8,9 +8,11 @@ import org.example.clients.ElasticsearchClient;
 import org.example.clients.Entities.Article;
 import org.example.clients.UserClient;
 import org.example.clients.dto.article.ViewsResponse;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -23,58 +25,71 @@ public class ArticleService {
     private final ElasticsearchClient elasticsearchClient;
     private final UserClient userClient;
 
-    public List<Article> getAllArticles() {
-        List<Article> articles = new ArrayList<>();
+    public ResponseEntity<List<Article>> getAllArticles() {
         try {
             //Get all articles from MongoDB
-            articles = articleRepository.findAll();
-            log.info("Fetched all articles");
-            //Pass them to elasticsearch microservice save function
-            elasticsearchClient.saveArticles(articles);
-            log.info("Passing articles to elasticsearch microservice");
+            List<Article> articles = articleRepository.findAll();
+            if (articles.isEmpty()) {
+                log.error("No articles found");
+                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+            } else {
+                Collections.reverse(articles);
+                log.info("Fetched all articles");
+                return ResponseEntity.status(HttpStatus.OK).body(articles);
+            }
         } catch (Exception e) {
             log.error("Error occurred while getting articles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        return articles;
     }
 
-    public Article getArticleByUuid(String uuid) {
-        Article article = new Article();
+    public ResponseEntity<Article> getArticleByUuid(String uuid) {
         try {
-            article = articleRepository.findByUuid(uuid);
+            Article article = articleRepository.findByUuid(uuid);
             log.info("Fetched article by uuid {} ", uuid);
+            return ResponseEntity.status(HttpStatus.OK).body(article);
         } catch (Exception e) {
             log.error("Error occurred while getting article", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
-        return article;
     }
 
 
+    public ResponseEntity<ViewsResponse> updateArticleViewCount(String uuid) {
 
-    public ViewsResponse updateArticleViewCount(String uuid) {
-        ViewsResponse viewsResponse = new ViewsResponse();
         try {
             // Retrieve the article by UUID
             Article article = articleRepository.findByUuid(uuid);
-            if (article != null) {
+            if (article == null) {
+                // If article not found, set appropriate message in response
+                log.error("Articles with {} not found", uuid);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(
+                        ViewsResponse.builder()
+                                .message("Articles with UUID: " + uuid + " not found")
+                                .build()
+                );
+            } else {
                 // Increment the view count
                 int updatedViews = article.getViews() + 1;
                 article.setViews(updatedViews);
                 articleRepository.save(article);
 
                 // Prepare the response
-                viewsResponse.setMessage("Article view count updated successfully");
-                viewsResponse.setArticleViews(updatedViews);
-            } else {
-                // If article not found, set appropriate message in response
-                viewsResponse.setMessage("Article not found with UUID: " + uuid);
-                viewsResponse.setArticleViews(null);
+                log.info("Article view count updated successfully");
+                return ResponseEntity.status(HttpStatus.OK).body(
+                        ViewsResponse.builder()
+                                .message("Article view count updated successfully")
+                                .articleViews(updatedViews)
+                                .build()
+                );
             }
         } catch (Exception e) {
             log.error("Error occurred while updating views count", e);
-            viewsResponse.setMessage("Failed to update views count");
-            viewsResponse.setArticleViews(null);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
+                    ViewsResponse.builder()
+                            .message("Failed to update views count")
+                            .build()
+            );
         }
-        return viewsResponse;
     }
 }
