@@ -28,19 +28,19 @@ spring:
           uri: lb://ELASTICSEARCH
           predicates:
             - Path=/api/elastic/**
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origin-patterns:
-              - "http://localhost:*"
+            allowed-origins: "http://localhost:3000"
+            allowed-headers: "*"
             allowed-methods:
               - GET
               - POST
               - PUT
               - DELETE
-            allowed-headers: "*"
-            allow-credentials: true
-
+              - PATCH
 eureka:
   client:
     service-url:
