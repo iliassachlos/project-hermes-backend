@@ -15,9 +15,11 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.stereotype.Service;
 
+import javax.print.Doc;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -41,11 +43,11 @@ public class ScrapingService {
         return selectorsMap;
     }
 
-    public Map<String, Map<String, String>> getAllWebsiteCategories(){
+    public Map<String, Map<String, String>> getAllWebsiteCategories() {
         Map<String, Map<String, String>> websiteCategoriesMap = new HashMap<>();
         List<Website> allWebsites = websitesRepository.findAll();
 
-        for (Website website: allWebsites){
+        for (Website website : allWebsites) {
             websiteCategoriesMap.put(website.getTitle(), website.getCategories());
         }
         return websiteCategoriesMap;
@@ -65,12 +67,12 @@ public class ScrapingService {
             List<Website> allWebsites = websitesRepository.findAll();
 
             //Iterate over websites and categories
-            for(Website website: allWebsites){
+            for (Website website : allWebsites) {
                 String websiteTitle = website.getTitle();
                 Map<String, String> categories = website.getCategories();
-                log.info("NOW FETCHING WEBPAGE: " + websiteTitle );
+                log.info("NOW FETCHING WEBPAGE: " + websiteTitle);
 
-                for (Map.Entry<String, String> entry: categories.entrySet()){
+                for (Map.Entry<String, String> entry : categories.entrySet()) {
                     String category = entry.getKey();
                     String categoryUrl = entry.getValue();
 
@@ -80,19 +82,19 @@ public class ScrapingService {
                     List<String> articleLinks = new ArrayList<>();
 
                     // Fetch article URLs from the current page
-                    for (String startingSelector : allSelectors.get("startingArticleLinks")){
+                    for (String startingSelector : allSelectors.get("startingArticleLinks")) {
                         // Select elements matching the starting selector and extract their link
                         Elements links = document.select(startingSelector + " a");
-                        for (Element link : links){
+                        for (Element link : links) {
                             // Add the absolute URL of each link to the article links list
                             articleLinks.add(link.attr("abs:href"));
                         }
-                        if(!articleLinks.isEmpty()){
+                        if (!articleLinks.isEmpty()) {
                             break;
                         }
                     }
                     // Scraping articles from fetched URLs
-                    for (int i=0; i<Math.min(articleLinks.size(), 5); i++){
+                    for (int i = 0; i < Math.min(articleLinks.size(), 1); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
                         Article articleData = scrapeArticle(articleLinks.get(i), category);
                         articles.add(articleData);
@@ -133,6 +135,17 @@ public class ScrapingService {
                     break;
                 }
             }
+            // If title is still null, using more general selectors
+            if (articleData.getTitle() == null) {
+                String[] generalTitleSelectors = {"h1, h2, h3"};
+                for (String selector : generalTitleSelectors) {
+                    Elements elements = document.select(selector);
+                    if (!elements.isEmpty()) {
+                        articleData.setTitle(elements.get(0).text().trim());
+                        break;
+                    }
+                }
+            }
 
             // Fetch content of the article
             for (String selector : articleSelectors) {
@@ -144,6 +157,28 @@ public class ScrapingService {
                 }
             }
 
+            if (articleData.getContent() == null || articleData.getContent().isEmpty()) {
+                Elements dynamicElements = document.body().select("*");
+                Element bestBlock = null;
+                int maxScore = 0;
+                for (Element element : dynamicElements) {
+                    int score = element.ownText().length();
+                    if (score > maxScore) {
+                        maxScore = score;
+                        bestBlock = element;
+                    }
+                }
+                if (bestBlock != null) {
+                    Element parent = bestBlock.parent();
+                    if (parent != null && parent.hasText()) {
+                        articleData.setContent(parent.text());
+                    } else {
+                        articleData.setContent(bestBlock.text());
+                    }
+                }
+            }
+
+
             // Fetch timestamp of the article
             boolean foundTimestamp = false;
             for (String selector : timeSelectors) {
@@ -151,7 +186,9 @@ public class ScrapingService {
                 Elements elements = document.select(selector);
                 if (!elements.isEmpty()) {
                     articleData.setTime(elements.get(0).attr("datetime"));
-                    foundTimestamp = true;
+                    if (!Objects.equals(articleData.getTime(), "")) {
+                        foundTimestamp = true;
+                    }
                     break;
                 }
             }
