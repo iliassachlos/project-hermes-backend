@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 import org.example.clients.Entities.User;
 
 @Data
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
 public class RegisterUserResponse {
     private String message;
     private User user;

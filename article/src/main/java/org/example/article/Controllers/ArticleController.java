@@ -5,6 +5,7 @@ import org.example.article.Services.ArticleService;
 import org.example.clients.dto.article.ViewsResponse;
 import org.example.clients.Entities.Article;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,19 +19,19 @@ public class ArticleController {
 
     @GetMapping("/all")
     @ResponseStatus(HttpStatus.OK)
-    public List<Article> getAllArticles() {
+    public ResponseEntity<List<Article>> getAllArticles() {
         return articleService.getAllArticles();
     }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public Article getArticleById(@PathVariable String id) {
+    public ResponseEntity<Article> getArticleById(@PathVariable String id) {
         return articleService.getArticleByUuid(id);
     }
 
     @PutMapping("/{id}/views")
     @ResponseStatus(HttpStatus.OK)
-    public ViewsResponse updateArticleViewCount(@PathVariable String id) {
+    public ResponseEntity<ViewsResponse> updateArticleViewCount(@PathVariable String id) {
         return articleService.updateArticleViewCount(id);
     }
 
