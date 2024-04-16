@@ -12,8 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import javax.swing.text.View;
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -34,6 +33,7 @@ public class ArticleService {
                 log.error("No articles found");
                 return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
             } else {
+                Collections.reverse(articles);
                 log.info("Fetched all articles");
                 return ResponseEntity.status(HttpStatus.OK).body(articles);
             }
