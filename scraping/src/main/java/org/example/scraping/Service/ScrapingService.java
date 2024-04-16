@@ -13,6 +13,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.cglib.core.Local;
 import org.springframework.stereotype.Service;
 
 import javax.print.Doc;
@@ -94,10 +95,14 @@ public class ScrapingService {
                         }
                     }
                     // Scraping articles from fetched URLs
-                    for (int i = 0; i < Math.min(articleLinks.size(), 1); i++) {
+                    for (int i = 0; i < Math.min(articleLinks.size(), 10); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
                         Article articleData = scrapeArticle(articleLinks.get(i), category);
-                        articles.add(articleData);
+                        if (articleData != null) {
+                            articles.add(articleData);
+                        } else {
+                            log.info("Article was 3 days old or more, skipped");
+                        }
                     }
                 }
             }
@@ -195,6 +200,16 @@ public class ScrapingService {
             if (!foundTimestamp) {
                 String formattedCurrentTime = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
                 articleData.setTime(formattedCurrentTime);
+            }
+
+            LocalDate threeDaysAgo = LocalDate.now().minusDays(3);
+            // Define a formatter that parses the date string (yyyy-MM-dd)
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            // Split the input string at the 'T' character and take only the date part
+            String dateString = articleData.getTime().split("T")[0];
+            LocalDate articleDate = LocalDate.parse(dateString, formatter);
+            if (!articleDate.isAfter(threeDaysAgo)) {
+                return null;
             }
 
             // Fetch source of the article
