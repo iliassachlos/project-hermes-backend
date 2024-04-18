@@ -78,6 +78,6 @@ public class ElasticArticleService {
         }
 
         Query query = Query.of(q -> q.bool(boolQueryBuilder.build()));
-        return elasticsearchClient.search(s -> s.index("articles").query(query), ElasticArticle.class);
+        return elasticsearchClient.search(s -> s.index("articles").query(query).size(1000), ElasticArticle.class);
     }
 }

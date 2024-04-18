@@ -34,37 +34,23 @@ public class ScrapingController {
         return articles;
     }
 
-    @PostMapping("/addWebsite")
+    @PostMapping("/website/add")
     public ResponseEntity<Website> saveWebsite(@RequestBody Website website) {
-        Website savedWebsite = websiteService.saveWebsite(website);
-        log.info("Created a new website with title = {}", website.getTitle());
-        return ResponseEntity.ok(savedWebsite);
+        return websiteService.saveWebsite(website);
     }
 
-    @DeleteMapping("/deleteWebsite")
-    public ResponseEntity<Void> deleteWebsite(@RequestBody String title) {
-        websiteService.deleteWebsiteByTitle(title);
-        log.info("Deleted the website with title = {}", title);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/website/delete")
+    public ResponseEntity<String> deleteWebsite(@RequestBody String title) {
+        return websiteService.deleteWebsiteByTitle(title);
     }
 
-    @PostMapping("/addSelector/{id}")
+    @PostMapping("/website/add/{id}")
     public ResponseEntity<Selector> addSelector(@PathVariable String id, @RequestBody String newSelector) {
-        Selector updatedSelector = selectorService.addSelector(id, newSelector);
-        if (updatedSelector == null) {
-            return ResponseEntity.notFound().build();
-        }
-        log.info("Added selector {} in Selectors document with id {}", newSelector, id);
-        return ResponseEntity.ok(updatedSelector);
+        return selectorService.addSelector(id, newSelector);
     }
 
-    @DeleteMapping("/deleteSelector/{id}")
-    public ResponseEntity<Void> deleteSelectorByName(@PathVariable String id, @RequestBody String selectorToRemove) {
-        Selector updatedSelector = selectorService.removeSelector(id, selectorToRemove);
-        if (updatedSelector == null) {
-            return ResponseEntity.notFound().build();
-        }
-        log.info("Deleted selector {} in Selectors document with id {}", selectorToRemove, id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/website/delete/{id}")
+    public ResponseEntity<Selector> deleteSelectorByName(@PathVariable String id, @RequestBody String selectorToRemove) {
+        return selectorService.removeSelector(id, selectorToRemove);
     }
 }

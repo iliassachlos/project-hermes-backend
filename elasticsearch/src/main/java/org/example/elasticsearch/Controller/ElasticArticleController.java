@@ -32,23 +32,15 @@ public class ElasticArticleController {
     public Map<String, Object> dynamicSearch(@RequestBody BooleanSearchRequest searchParams) throws IOException {
         SearchResponse<ElasticArticle> searchResponse = elasticArticleService.dynamicBoolQueryImpl(searchParams);
 
-        List<Map<String, Object>> resultsWithMetadata = new ArrayList<>();
+        List<ElasticArticle> articles = new ArrayList<>();
         for (Hit<ElasticArticle> hit : searchResponse.hits().hits()) {
-            Map<String, Object> result = new HashMap<>();
-            result.put("article", hit.source());
-            result.put("metadata", Map.of(
-                    "id", hit.id(),
-                    "index", hit.index(),
-                    "score", hit.score()
-                    // Add more metadata fields here if needed
-            ));
-            resultsWithMetadata.add(result);
+            articles.add(hit.source());
         }
 
         Map<String, Object> response = new HashMap<>();
-        response.put("articles", resultsWithMetadata);
-        response.put("totalHits", searchResponse.hits().total().value()); // This line adds the total hits metadata
-        response.put("maxScore", searchResponse.hits().maxScore()); // This line adds the max score metadata
+        response.put("articles", articles);
+        response.put("totalHits", searchResponse.hits().total().value()); // Total hits metadata
+        response.put("maxScore", searchResponse.hits().maxScore()); // Max score metadata
         return response;
     }
 }
