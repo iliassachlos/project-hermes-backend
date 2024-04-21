@@ -3,7 +3,7 @@ package org.example.elasticsearch.Controller;
 import lombok.RequiredArgsConstructor;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import org.example.clients.Entities.Article;
+import org.example.clients.Entities.PreProcessedArticle;
 import org.example.elasticsearch.Entities.ElasticArticle;
 import org.example.elasticsearch.Service.ElasticArticleService;
 
@@ -24,7 +24,7 @@ public class ElasticArticleController {
     private final ElasticArticleService elasticArticleService;
 
     @PostMapping("/save")
-    public void saveArticles(@RequestBody List<Article> articles) {
+    public void saveArticles(@RequestBody List<PreProcessedArticle> articles) {
         elasticArticleService.saveArticles(articles);
     }
 

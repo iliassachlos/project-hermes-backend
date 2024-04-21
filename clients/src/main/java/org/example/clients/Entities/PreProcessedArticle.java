@@ -6,15 +6,17 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.UUID;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Document(collection = "articles")
-public class Article {
+@Document(collection = "pre-processed-articles")
+public class PreProcessedArticle {
     @Id
     private String id;
 
-    private String uuid;
+    private String uuid = UUID.randomUUID().toString();
 
     private String url;
 

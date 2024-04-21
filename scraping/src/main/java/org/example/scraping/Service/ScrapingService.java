@@ -4,9 +4,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.example.clients.Entities.Article;
+import org.example.clients.Entities.PreProcessedArticle;
 import org.example.scraping.Entities.Selector;
 import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.ArticleRepository;
+import org.example.scraping.Repositories.PreProcessedArticleRepository;
 import org.example.scraping.Repositories.SelectorRepository;
 import org.example.scraping.Repositories.WebsitesRepository;
 import org.jsoup.Jsoup;
@@ -27,6 +29,7 @@ import java.util.*;
 @AllArgsConstructor
 @Service
 public class ScrapingService {
+    private final PreProcessedArticleRepository preProcessedArticleRepository;
     private final ArticleRepository articleRepository;
     private final SelectorRepository selectorRepository;
     private final WebsitesRepository websitesRepository;
@@ -51,8 +54,8 @@ public class ScrapingService {
         return websiteCategoriesMap;
     }
 
-    public List<Article> fetchArticlesFromWebsites() {
-        List<Article> articles = new ArrayList<>();
+    public List<PreProcessedArticle> fetchArticlesFromWebsites() {
+        List<PreProcessedArticle> articles = new ArrayList<>();
 
         try {
             log.info("STARTING FETCHING PROCESS...");
@@ -94,7 +97,7 @@ public class ScrapingService {
                     // Scraping articles from fetched URLs
                     for (int i = 0; i < Math.min(articleLinks.size(), 1); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
-                        Article articleData = scrapeArticle(articleLinks.get(i), category);
+                        PreProcessedArticle articleData = scrapeArticle(articleLinks.get(i), category);
                         if (articleData != null) {
                             articles.add(articleData);
                         } else {
@@ -105,19 +108,19 @@ public class ScrapingService {
             }
             log.info("FINISHED FETCHING");
         } catch (IOException e) {
-            log.error("Error fetching articles. " + e.getMessage());
+            log.error("Error fetching articles. {}", e.getMessage());
         }
         return articles;
     }
 
-    private Article scrapeArticle(String articleURL, String category) {
+    private PreProcessedArticle scrapeArticle(String articleURL, String category) {
         Map<String, List<String>> allSelectors = getAllSelectors();
 
         List<String> titleSelectors = allSelectors.get("titleSelectors");
         List<String> articleSelectors = allSelectors.get("articleSelectors");
         List<String> timeSelectors = allSelectors.get("timeSelectors");
 
-        Article articleData = new Article();
+        PreProcessedArticle articleData = new PreProcessedArticle();
         RandomDataGenerator randomDataGenerator = new RandomDataGenerator();
 
         //Set the URL, category and views of the article;
@@ -272,6 +275,61 @@ public class ScrapingService {
             }
         }
         return false;
+    }
+
+    public List<PreProcessedArticle> getAllPreprocessedArticles() {
+        try {
+            List<PreProcessedArticle> articles = preProcessedArticleRepository.findAll();
+            return articles;
+        } catch (Exception e) {
+            log.error("An error occurred while trying to get all articles");
+            return null;
+        }
+    }
+
+    public void savePreProcessedArticles(List<PreProcessedArticle> articles) {
+        List<PreProcessedArticle> newArticles = new ArrayList<>();
+        Integer newArticlesCounter = 0;
+
+//        articles.sort(Comparator.nullsLast(Comparator.comparing(Article::getTime)));
+
+        articles.sort(Comparator.comparing(PreProcessedArticle::getTime, Comparator.nullsLast(Comparator.naturalOrder())));
+
+        log.info("Inserting articles to MongoDB...");
+        try {
+            for (PreProcessedArticle article : articles) {
+                // Check if article already exists in MongoDB based on URL
+                PreProcessedArticle existingArticle = preProcessedArticleRepository.findByUrl(article.getUrl());
+                if (existingArticle == null) {
+                    //IF article not exist, save it to MongoDB
+                    PreProcessedArticle savedArticle = preProcessedArticleRepository.save(article);
+                    newArticles.add(savedArticle);
+                    newArticlesCounter++;
+                }
+            }
+            for (PreProcessedArticle newArticle : newArticles) {
+                log.info("New article added: {}", newArticle.getTitle());
+            }
+            log.info("Articles added: {}", newArticlesCounter);
+        } catch (Exception e) {
+            log.error("Error occurred while saving articles", e);
+        }
+    }
+
+    public void deleteOldPreProcessedArticles() {
+        //Calculate 3 days ago
+        String threeDaysAgo = String.valueOf(LocalDate.now().minusDays(3));
+        log.info("Three days ago it was " + threeDaysAgo);
+        log.info("Deleting old articles...");
+        try {
+            //Find old articles
+            List<PreProcessedArticle> oldArticles = preProcessedArticleRepository.findByTimeBefore(threeDaysAgo);
+            //Delete articles older than 3 days
+            preProcessedArticleRepository.deleteByTimeBefore(threeDaysAgo);
+            log.info(oldArticles.size() + " articles were deleted");
+        } catch (Exception e) {
+            log.error("Error occurred while deleting old articles", e);
+        }
     }
 
     public void saveArticles(List<Article> articles) {

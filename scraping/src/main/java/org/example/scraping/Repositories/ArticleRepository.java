@@ -13,5 +13,4 @@ public interface ArticleRepository extends MongoRepository<Article, String> {
     List<Article> findByTimeBefore(String time);
 
     void deleteByTimeBefore(String time);
-
 }
