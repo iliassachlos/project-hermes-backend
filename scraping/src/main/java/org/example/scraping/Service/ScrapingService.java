@@ -24,6 +24,7 @@ import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
 @Service
@@ -98,7 +99,7 @@ public class ScrapingService {
                         }
                     }
                     // Scraping articles from fetched URLs
-                    for (int i = 0; i < Math.min(articleLinks.size(), 1); i++) {
+                    for (int i = 0; i < Math.min(articleLinks.size(), 5); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
                         PreProcessedArticle articleData = scrapeArticle(articleLinks.get(i), category);
                         if (articleData != null) {
@@ -186,7 +187,6 @@ public class ScrapingService {
                 }
             }
 
-
             // Fetch timestamp of the article
             boolean foundTimestamp = false;
             for (String selector : timeSelectors) {
@@ -205,12 +205,24 @@ public class ScrapingService {
                 articleData.setTime(formattedCurrentTime);
             }
 
+            // Check if article 3 days old and delete
             LocalDate threeDaysAgo = LocalDate.now().minusDays(3);
             // Define a formatter that parses the date string (yyyy-MM-dd)
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             // Split the input string at the 'T' character and take only the date part
             String dateString = articleData.getTime().split("T")[0];
-            LocalDate articleDate = LocalDate.parse(dateString, formatter);
+            DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            LocalDate articleDate = null;
+            try {
+                articleDate = LocalDate.parse(dateString, formatter1);
+            } catch (DateTimeParseException e) {
+                try {
+                    articleDate = LocalDate.parse(dateString, formatter2);
+                } catch (DateTimeParseException ex){
+                    log.error("Invalid date format: " + dateString);
+                    return null;
+                }
+            }
             if (!articleDate.isAfter(threeDaysAgo)) {
                 return null;
             }

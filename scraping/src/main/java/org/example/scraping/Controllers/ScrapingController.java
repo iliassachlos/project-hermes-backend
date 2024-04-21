@@ -38,20 +38,16 @@ public class ScrapingController {
         log.info("Fetching articles");
         List<PreProcessedArticle> fetchedArticles = scrapingService.fetchArticlesFromWebsites();
 
-        saveToElastic(fetchedArticles);
-
         //Save websites to pre-processed-articles document
-//        log.info("Saving to pre-processed-articles document");
-//        scrapingService.savePreProcessedArticles(fetchedArticles);
+        log.info("Saving to pre-processed-articles document");
+        scrapingService.savePreProcessedArticles(fetchedArticles);
 
         //get websites from pre-processed-articles document (Way to fix microservice bug)
-//        log.info("getting websites from pre-processed-articles document");
-//        List<PreProcessedArticle> preProcessedArticles = scrapingService.getAllPreprocessedArticles();
+        log.info("getting websites from pre-processed-articles document");
+        List<PreProcessedArticle> preProcessedArticles = scrapingService.getAllPreprocessedArticles();
 
-
-//        //save pre-processed-articles to elastic
-//        log.info("saving pre-processed-articles to elastic");
-//        elasticsearchClient.saveArticles(preProcessedArticles);
+        //save pre-processed-articles to elastic
+        saveToElastic(preProcessedArticles);
 
         return fetchedArticles;
     }
