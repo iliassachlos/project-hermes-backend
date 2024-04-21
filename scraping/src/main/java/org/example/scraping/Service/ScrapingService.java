@@ -3,6 +3,7 @@ package org.example.scraping.Service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
+import org.example.amqp.RabbitMQMessageProducer;
 import org.example.clients.Entities.Article;
 import org.example.clients.Entities.PreProcessedArticle;
 import org.example.scraping.Entities.Selector;
@@ -25,14 +26,16 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
+@Service
 @Slf4j
 @AllArgsConstructor
-@Service
 public class ScrapingService {
     private final PreProcessedArticleRepository preProcessedArticleRepository;
     private final ArticleRepository articleRepository;
     private final SelectorRepository selectorRepository;
     private final WebsitesRepository websitesRepository;
+
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
 
     public Map<String, List<String>> getAllSelectors() {
         Map<String, List<String>> selectorsMap = new HashMap<>();
@@ -375,5 +378,9 @@ public class ScrapingService {
         } catch (Exception e) {
             log.error("Error occurred while deleting old articles", e);
         }
+    }
+
+    public void saveToElastic(List<PreProcessedArticle> preProcessedArticles) {
+
     }
 }

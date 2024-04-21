@@ -20,7 +20,6 @@ import java.util.List;
 @Slf4j
 public class ArticleService {
     private final ArticleRepository articleRepository;
-    private final RabbitMQMessageProducer rabbitMQMessageProducer;
 
     private final ElasticsearchClient elasticsearchClient;
     private final UserClient userClient;

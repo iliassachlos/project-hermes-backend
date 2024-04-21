@@ -1,7 +1,9 @@
 package org.example.scraping.Controllers;
 
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.amqp.RabbitMQMessageProducer;
 import org.example.clients.ElasticsearchClient;
 import org.example.clients.Entities.PreProcessedArticle;
 import org.example.scraping.Entities.Selector;
@@ -27,6 +29,7 @@ public class ScrapingController {
     private final SelectorService selectorService;
 
     private final ElasticsearchClient elasticsearchClient;
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
 
     @GetMapping("/scrape")
     @ResponseStatus(HttpStatus.OK)
@@ -35,21 +38,27 @@ public class ScrapingController {
         log.info("Fetching articles");
         List<PreProcessedArticle> fetchedArticles = scrapingService.fetchArticlesFromWebsites();
 
+        saveToElastic(fetchedArticles);
+
         //Save websites to pre-processed-articles document
-        log.info("Saving to pre-processed-articles document");
-        scrapingService.savePreProcessedArticles(fetchedArticles);
+//        log.info("Saving to pre-processed-articles document");
+//        scrapingService.savePreProcessedArticles(fetchedArticles);
 
         //get websites from pre-processed-articles document (Way to fix microservice bug)
-        log.info("getting websites from pre-processed-articles document");
-        List<PreProcessedArticle> preProcessedArticles = scrapingService.getAllPreprocessedArticles();
+//        log.info("getting websites from pre-processed-articles document");
+//        List<PreProcessedArticle> preProcessedArticles = scrapingService.getAllPreprocessedArticles();
 
-        //todo:send pre-processed-articles to machine learning models
 
-        //save pre-processed-articles to elastic
-        log.info("saving pre-processed-articles to elastic");
-        elasticsearchClient.saveArticles(preProcessedArticles);
+//        //save pre-processed-articles to elastic
+//        log.info("saving pre-processed-articles to elastic");
+//        elasticsearchClient.saveArticles(preProcessedArticles);
 
-        return preProcessedArticles;
+        return fetchedArticles;
+    }
+
+    private void saveToElastic(List<PreProcessedArticle> articles) {
+        log.info("passing data to elastic");
+        rabbitMQMessageProducer.publish(articles, "internal.exchange", "internal.elastic-saver.routing-key");
     }
 
     @PostMapping("/website/add")
