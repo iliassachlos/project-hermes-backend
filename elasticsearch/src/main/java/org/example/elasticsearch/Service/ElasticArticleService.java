@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.example.clients.Entities.Article;
+import org.example.clients.Entities.PreProcessedArticle;
 import org.example.elasticsearch.Entities.ElasticArticle;
 import org.example.elasticsearch.Repository.ElasticArticleRepository;
 import org.example.elasticsearch.dto.BooleanSearchRequest;
@@ -25,7 +26,7 @@ public class ElasticArticleService {
     private final ElasticArticleRepository articleRepository;
     private final ElasticsearchClient elasticsearchClient;
 
-    private ElasticArticle transformArticleToElasticArticle(Article article) {
+    private ElasticArticle transformArticleToElasticArticle(PreProcessedArticle article) {
         return ElasticArticle.builder()
                 .id(article.getId())
                 .uuid(article.getUuid())
@@ -40,10 +41,10 @@ public class ElasticArticleService {
                 .build();
     }
 
-    public void saveArticles(List<Article> articles) {
+    public void saveArticles(List<PreProcessedArticle> preProcessedArticles) {
         List<ElasticArticle> elasticArticles = new ArrayList<>();
         try {
-            for (Article article : articles) {
+            for (PreProcessedArticle article : preProcessedArticles) {
                 elasticArticles.add(transformArticleToElasticArticle(article));
             }
             articleRepository.saveAll(elasticArticles);

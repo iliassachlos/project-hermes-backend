@@ -3,7 +3,8 @@ package org.example.elasticsearch.Controller;
 import lombok.RequiredArgsConstructor;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
-import org.example.clients.Entities.Article;
+import lombok.extern.slf4j.Slf4j;
+import org.example.clients.Entities.PreProcessedArticle;
 import org.example.elasticsearch.Entities.ElasticArticle;
 import org.example.elasticsearch.Service.ElasticArticleService;
 
@@ -20,12 +21,14 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 @RequestMapping("api/elastic")
 @RequiredArgsConstructor
+@Slf4j
 public class ElasticArticleController {
     private final ElasticArticleService elasticArticleService;
 
     @PostMapping("/save")
-    public void saveArticles(@RequestBody List<Article> articles) {
-        elasticArticleService.saveArticles(articles);
+    public void saveArticles(@RequestBody List<PreProcessedArticle> preProcessedArticles) {
+        log.info("Inside ELASTIC SAVE ");
+        elasticArticleService.saveArticles(preProcessedArticles);
     }
 
     @PostMapping("/search")

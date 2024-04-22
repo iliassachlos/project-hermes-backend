@@ -5,7 +5,6 @@ import org.example.clients.Entities.Article;
 import org.example.clients.Entities.User;
 import org.example.clients.dto.user.*;
 import org.example.user.Services.UserService;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

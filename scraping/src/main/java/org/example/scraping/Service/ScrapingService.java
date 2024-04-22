@@ -3,16 +3,22 @@ package org.example.scraping.Service;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
+import org.example.amqp.RabbitMQMessageProducer;
+import org.example.clients.ElasticsearchClient;
 import org.example.clients.Entities.Article;
+import org.example.clients.Entities.PreProcessedArticle;
 import org.example.scraping.Entities.Selector;
 import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.ArticleRepository;
+import org.example.scraping.Repositories.PreProcessedArticleRepository;
 import org.example.scraping.Repositories.SelectorRepository;
 import org.example.scraping.Repositories.WebsitesRepository;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -21,15 +27,20 @@ import java.net.URISyntaxException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.*;
 
+@Service
 @Slf4j
 @AllArgsConstructor
-@Service
 public class ScrapingService {
+    private final PreProcessedArticleRepository preProcessedArticleRepository;
     private final ArticleRepository articleRepository;
     private final SelectorRepository selectorRepository;
     private final WebsitesRepository websitesRepository;
+
+    private final RabbitMQMessageProducer rabbitMQMessageProducer;
+    private final ElasticsearchClient elasticsearchClient;
 
     public Map<String, List<String>> getAllSelectors() {
         Map<String, List<String>> selectorsMap = new HashMap<>();
@@ -51,8 +62,8 @@ public class ScrapingService {
         return websiteCategoriesMap;
     }
 
-    public List<Article> fetchArticlesFromWebsites() {
-        List<Article> articles = new ArrayList<>();
+    public List<PreProcessedArticle> fetchArticlesFromWebsites() {
+        List<PreProcessedArticle> articles = new ArrayList<>();
 
         try {
             log.info("STARTING FETCHING PROCESS...");
@@ -94,7 +105,7 @@ public class ScrapingService {
                     // Scraping articles from fetched URLs
                     for (int i = 0; i < Math.min(articleLinks.size(), 1); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
-                        Article articleData = scrapeArticle(articleLinks.get(i), category);
+                        PreProcessedArticle articleData = scrapeArticle(articleLinks.get(i), category);
                         if (articleData != null) {
                             articles.add(articleData);
                         } else {
@@ -105,19 +116,19 @@ public class ScrapingService {
             }
             log.info("FINISHED FETCHING");
         } catch (IOException e) {
-            log.error("Error fetching articles. " + e.getMessage());
+            log.error("Error fetching articles. {}", e.getMessage());
         }
         return articles;
     }
 
-    private Article scrapeArticle(String articleURL, String category) {
+    private PreProcessedArticle scrapeArticle(String articleURL, String category) {
         Map<String, List<String>> allSelectors = getAllSelectors();
 
         List<String> titleSelectors = allSelectors.get("titleSelectors");
         List<String> articleSelectors = allSelectors.get("articleSelectors");
         List<String> timeSelectors = allSelectors.get("timeSelectors");
 
-        Article articleData = new Article();
+        PreProcessedArticle articleData = new PreProcessedArticle();
         RandomDataGenerator randomDataGenerator = new RandomDataGenerator();
 
         //Set the URL, category and views of the article;
@@ -180,7 +191,6 @@ public class ScrapingService {
                 }
             }
 
-
             // Fetch timestamp of the article
             boolean foundTimestamp = false;
             for (String selector : timeSelectors) {
@@ -199,12 +209,24 @@ public class ScrapingService {
                 articleData.setTime(formattedCurrentTime);
             }
 
+            // Check if article 3 days old and delete
             LocalDate threeDaysAgo = LocalDate.now().minusDays(3);
             // Define a formatter that parses the date string (yyyy-MM-dd)
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
             // Split the input string at the 'T' character and take only the date part
             String dateString = articleData.getTime().split("T")[0];
-            LocalDate articleDate = LocalDate.parse(dateString, formatter);
+            DateTimeFormatter formatter1 = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            DateTimeFormatter formatter2 = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+            LocalDate articleDate = null;
+            try {
+                articleDate = LocalDate.parse(dateString, formatter1);
+            } catch (DateTimeParseException e) {
+                try {
+                    articleDate = LocalDate.parse(dateString, formatter2);
+                } catch (DateTimeParseException ex) {
+                    log.error("Invalid date format: " + dateString);
+                    return null;
+                }
+            }
             if (!articleDate.isAfter(threeDaysAgo)) {
                 return null;
             }
@@ -274,6 +296,61 @@ public class ScrapingService {
         return false;
     }
 
+    public List<PreProcessedArticle> getAllPreprocessedArticles() {
+        try {
+            List<PreProcessedArticle> articles = preProcessedArticleRepository.findAll();
+            return articles;
+        } catch (Exception e) {
+            log.error("An error occurred while trying to get all articles");
+            return null;
+        }
+    }
+
+    public void savePreProcessedArticles(List<PreProcessedArticle> articles) {
+        List<PreProcessedArticle> newArticles = new ArrayList<>();
+        Integer newArticlesCounter = 0;
+
+//        articles.sort(Comparator.nullsLast(Comparator.comparing(Article::getTime)));
+
+        articles.sort(Comparator.comparing(PreProcessedArticle::getTime, Comparator.nullsLast(Comparator.naturalOrder())));
+
+        log.info("Inserting articles to MongoDB...");
+        try {
+            for (PreProcessedArticle article : articles) {
+                // Check if article already exists in MongoDB based on URL
+                PreProcessedArticle existingArticle = preProcessedArticleRepository.findByUrl(article.getUrl());
+                if (existingArticle == null) {
+                    //IF article not exist, save it to MongoDB
+                    PreProcessedArticle savedArticle = preProcessedArticleRepository.save(article);
+                    newArticles.add(savedArticle);
+                    newArticlesCounter++;
+                }
+            }
+            for (PreProcessedArticle newArticle : newArticles) {
+                log.info("New article added: {}", newArticle.getTitle());
+            }
+            log.info("Articles added: {}", newArticlesCounter);
+        } catch (Exception e) {
+            log.error("Error occurred while saving articles", e);
+        }
+    }
+
+    public void deleteOldPreProcessedArticles() {
+        //Calculate 3 days ago
+        String threeDaysAgo = String.valueOf(LocalDate.now().minusDays(3));
+        log.info("Three days ago it was " + threeDaysAgo);
+        log.info("Deleting old articles...");
+        try {
+            //Find old articles
+            List<PreProcessedArticle> oldArticles = preProcessedArticleRepository.findByTimeBefore(threeDaysAgo);
+            //Delete articles older than 3 days
+            preProcessedArticleRepository.deleteByTimeBefore(threeDaysAgo);
+            log.info(oldArticles.size() + " articles were deleted");
+        } catch (Exception e) {
+            log.error("Error occurred while deleting old articles", e);
+        }
+    }
+
     public void saveArticles(List<Article> articles) {
         List<Article> newArticles = new ArrayList<>();
         Integer newArticlesCounter = 0;
@@ -316,6 +393,20 @@ public class ScrapingService {
             log.info(oldArticles.size() + " articles were deleted");
         } catch (Exception e) {
             log.error("Error occurred while deleting old articles", e);
+        }
+    }
+
+    public ResponseEntity<String> saveToElastic() {
+        try {
+            List<PreProcessedArticle> preProcessedArticles = preProcessedArticleRepository.findAll();
+            log.info("passing data to elastic");
+            //elasticsearchClient.saveArticles(preProcessedArticles);
+
+            rabbitMQMessageProducer.publish(preProcessedArticles, "internal.exchange", "internal.elastic-saver.routing-key");
+            return ResponseEntity.status(HttpStatus.OK).body("Save completed");
+        } catch (Exception e) {
+            log.error("Error occurred while saving articles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving articles" + e.getMessage());
         }
     }
 }
