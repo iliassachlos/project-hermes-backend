@@ -26,9 +26,9 @@ public class ElasticArticleController {
     private final ElasticArticleService elasticArticleService;
 
     @PostMapping("/save")
-    public void saveArticles(@RequestBody List<PreProcessedArticle> articles) {
+    public void saveArticles(@RequestBody List<PreProcessedArticle> preProcessedArticles) {
         log.info("Inside ELASTIC SAVE ");
-        elasticArticleService.saveArticles(articles);
+        elasticArticleService.saveArticles(preProcessedArticles);
     }
 
     @PostMapping("/search")

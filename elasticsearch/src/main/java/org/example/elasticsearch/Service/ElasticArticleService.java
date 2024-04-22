@@ -41,10 +41,10 @@ public class ElasticArticleService {
                 .build();
     }
 
-    public void saveArticles(List<PreProcessedArticle> articles) {
+    public void saveArticles(List<PreProcessedArticle> preProcessedArticles) {
         List<ElasticArticle> elasticArticles = new ArrayList<>();
         try {
-            for (PreProcessedArticle article : articles) {
+            for (PreProcessedArticle article : preProcessedArticles) {
                 elasticArticles.add(transformArticleToElasticArticle(article));
             }
             articleRepository.saveAll(elasticArticles);

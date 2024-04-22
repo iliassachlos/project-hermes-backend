@@ -37,24 +37,25 @@ public class ScrapingController {
         //Scrape websites
         log.info("Fetching articles");
         List<PreProcessedArticle> fetchedArticles = scrapingService.fetchArticlesFromWebsites();
-
-        //Save websites to pre-processed-articles document
-        log.info("Saving to pre-processed-articles document");
         scrapingService.savePreProcessedArticles(fetchedArticles);
+        scrapingService.getAllPreprocessedArticles();
 
-        //get websites from pre-processed-articles document (Way to fix microservice bug)
-        log.info("getting websites from pre-processed-articles document");
-        List<PreProcessedArticle> preProcessedArticles = scrapingService.getAllPreprocessedArticles();
+//        //Save websites to pre-processed-articles document
+//        log.info("Saving to pre-processed-articles document");
+//        scrapingService.savePreProcessedArticles(fetchedArticles);
+//
+//        //get websites from pre-processed-articles document (Way to fix microservice bug)
+//        log.info("getting websites from pre-processed-articles document");
+//        List<PreProcessedArticle> preProcessedArticles = scrapingService.getAllPreprocessedArticles();
 
         //save pre-processed-articles to elastic
-        saveToElastic(preProcessedArticles);
 
         return fetchedArticles;
     }
 
-    private void saveToElastic(List<PreProcessedArticle> articles) {
-        log.info("passing data to elastic");
-        rabbitMQMessageProducer.publish(articles, "internal.exchange", "internal.elastic-saver.routing-key");
+    @PostMapping("/scrape/elastic")
+    private ResponseEntity<String> saveToElastic() {
+        return scrapingService.saveToElastic();
     }
 
     @PostMapping("/website/add")

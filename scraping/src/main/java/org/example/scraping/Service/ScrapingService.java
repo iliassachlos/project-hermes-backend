@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.example.amqp.RabbitMQMessageProducer;
+import org.example.clients.ElasticsearchClient;
 import org.example.clients.Entities.Article;
 import org.example.clients.Entities.PreProcessedArticle;
 import org.example.scraping.Entities.Selector;
@@ -16,6 +17,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -37,6 +40,7 @@ public class ScrapingService {
     private final WebsitesRepository websitesRepository;
 
     private final RabbitMQMessageProducer rabbitMQMessageProducer;
+    private final ElasticsearchClient elasticsearchClient;
 
     public Map<String, List<String>> getAllSelectors() {
         Map<String, List<String>> selectorsMap = new HashMap<>();
@@ -99,7 +103,7 @@ public class ScrapingService {
                         }
                     }
                     // Scraping articles from fetched URLs
-                    for (int i = 0; i < Math.min(articleLinks.size(), 5); i++) {
+                    for (int i = 0; i < Math.min(articleLinks.size(), 1); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
                         PreProcessedArticle articleData = scrapeArticle(articleLinks.get(i), category);
                         if (articleData != null) {
@@ -218,7 +222,7 @@ public class ScrapingService {
             } catch (DateTimeParseException e) {
                 try {
                     articleDate = LocalDate.parse(dateString, formatter2);
-                } catch (DateTimeParseException ex){
+                } catch (DateTimeParseException ex) {
                     log.error("Invalid date format: " + dateString);
                     return null;
                 }
@@ -392,7 +396,17 @@ public class ScrapingService {
         }
     }
 
-    public void saveToElastic(List<PreProcessedArticle> preProcessedArticles) {
+    public ResponseEntity<String> saveToElastic() {
+        try {
+            List<PreProcessedArticle> preProcessedArticles = preProcessedArticleRepository.findAll();
+            log.info("passing data to elastic");
+            //elasticsearchClient.saveArticles(preProcessedArticles);
 
+            rabbitMQMessageProducer.publish(preProcessedArticles, "internal.exchange", "internal.elastic-saver.routing-key");
+            return ResponseEntity.status(HttpStatus.OK).body("Save completed");
+        } catch (Exception e) {
+            log.error("Error occurred while saving articles", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving articles" + e.getMessage());
+        }
     }
 }

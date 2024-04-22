@@ -11,5 +11,5 @@ import java.util.List;
 public interface ElasticsearchClient {
 
     @PostMapping("api/elastic/save")
-    void saveArticles(@RequestBody List<PreProcessedArticle> articles);
+    void saveArticles(@RequestBody List<PreProcessedArticle> preProcessedArticles);
 }
