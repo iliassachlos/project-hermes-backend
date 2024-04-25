@@ -40,9 +40,8 @@ public class ScrapingService {
     private final WebsitesRepository websitesRepository;
 
     private final RabbitMQMessageProducer rabbitMQMessageProducer;
-    private final ElasticsearchClient elasticsearchClient;
 
-    public Map<String, List<String>> getAllSelectors() {
+    private Map<String, List<String>> getAllSelectorsForScraping() {
         Map<String, List<String>> selectorsMap = new HashMap<>();
         List<Selector> allSelectors = selectorRepository.findAll();
 
@@ -67,7 +66,7 @@ public class ScrapingService {
 
         try {
             log.info("STARTING FETCHING PROCESS...");
-            Map<String, List<String>> allSelectors = getAllSelectors();
+            Map<String, List<String>> allSelectors = getAllSelectorsForScraping();
 
             //Fetch the selectors
             List<String> startingArticleLinks = allSelectors.get("startingArticleLinks");
@@ -103,7 +102,7 @@ public class ScrapingService {
                         }
                     }
                     // Scraping articles from fetched URLs
-                    for (int i = 0; i < Math.min(articleLinks.size(), 1); i++) {
+                    for (int i = 0; i < Math.min(articleLinks.size(), 5); i++) {
                         // Call the scrapeArticle method to extract the article data from each URL
                         PreProcessedArticle articleData = scrapeArticle(articleLinks.get(i), category);
                         if (articleData != null) {
@@ -122,7 +121,7 @@ public class ScrapingService {
     }
 
     private PreProcessedArticle scrapeArticle(String articleURL, String category) {
-        Map<String, List<String>> allSelectors = getAllSelectors();
+        Map<String, List<String>> allSelectors = getAllSelectorsForScraping();
 
         List<String> titleSelectors = allSelectors.get("titleSelectors");
         List<String> articleSelectors = allSelectors.get("articleSelectors");
@@ -310,8 +309,6 @@ public class ScrapingService {
         List<PreProcessedArticle> newArticles = new ArrayList<>();
         Integer newArticlesCounter = 0;
 
-//        articles.sort(Comparator.nullsLast(Comparator.comparing(Article::getTime)));
-
         articles.sort(Comparator.comparing(PreProcessedArticle::getTime, Comparator.nullsLast(Comparator.naturalOrder())));
 
         log.info("Inserting articles to MongoDB...");
@@ -354,8 +351,6 @@ public class ScrapingService {
     public void saveArticles(List<Article> articles) {
         List<Article> newArticles = new ArrayList<>();
         Integer newArticlesCounter = 0;
-
-//        articles.sort(Comparator.nullsLast(Comparator.comparing(Article::getTime)));
 
         articles.sort(Comparator.comparing(Article::getTime, Comparator.nullsLast(Comparator.naturalOrder())));
 

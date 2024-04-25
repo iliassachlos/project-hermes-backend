@@ -7,4 +7,6 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WebsitesRepository extends MongoRepository<Website, String> {
     Website findByTitle(String title);
+
+    Website findByUuid(String uuid);
 }

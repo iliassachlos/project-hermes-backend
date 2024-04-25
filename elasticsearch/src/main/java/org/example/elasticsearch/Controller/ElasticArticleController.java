@@ -9,6 +9,8 @@ import org.example.elasticsearch.Entities.ElasticArticle;
 import org.example.elasticsearch.Service.ElasticArticleService;
 
 import org.example.elasticsearch.dto.BooleanSearchRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -18,12 +20,19 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@Slf4j
 @CrossOrigin(origins = "*")
 @RequestMapping("api/elastic")
 @RequiredArgsConstructor
-@Slf4j
 public class ElasticArticleController {
+
     private final ElasticArticleService elasticArticleService;
+
+    @GetMapping("/status")
+    public ResponseEntity<Boolean> checkElasticServiceStatus() {
+        log.info("Fetched service status");
+        return ResponseEntity.status(HttpStatus.OK).body(true);
+    }
 
     @PostMapping("/save")
     public void saveArticles(@RequestBody List<PreProcessedArticle> preProcessedArticles) {

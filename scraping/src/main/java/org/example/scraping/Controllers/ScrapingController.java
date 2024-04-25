@@ -1,21 +1,22 @@
 package org.example.scraping.Controllers;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.amqp.RabbitMQMessageProducer;
-import org.example.clients.ElasticsearchClient;
 import org.example.clients.Entities.PreProcessedArticle;
 import org.example.scraping.Entities.Selector;
 import org.example.scraping.Entities.Website;
 import org.example.scraping.Service.ScrapingService;
 import org.example.scraping.Service.SelectorService;
 import org.example.scraping.Service.WebsiteService;
+import org.example.scraping.dto.AddCategoryRequest;
+import org.example.scraping.dto.DeleteCategoryRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @Slf4j
@@ -28,29 +29,21 @@ public class ScrapingController {
     private final WebsiteService websiteService;
     private final SelectorService selectorService;
 
-    private final ElasticsearchClient elasticsearchClient;
-    private final RabbitMQMessageProducer rabbitMQMessageProducer;
+    @GetMapping("/status")
+    public ResponseEntity<Boolean> checkScrapingServiceStatus() {
+        log.info("Fetched service status");
+        return ResponseEntity.status(HttpStatus.OK).body(true);
+    }
 
     @GetMapping("/scrape")
     @ResponseStatus(HttpStatus.OK)
-    public List<PreProcessedArticle> fetchArticles() {
+    public ResponseEntity<List<PreProcessedArticle>> fetchArticles() {
         //Scrape websites
         log.info("Fetching articles");
         List<PreProcessedArticle> fetchedArticles = scrapingService.fetchArticlesFromWebsites();
         scrapingService.savePreProcessedArticles(fetchedArticles);
         scrapingService.getAllPreprocessedArticles();
-
-//        //Save websites to pre-processed-articles document
-//        log.info("Saving to pre-processed-articles document");
-//        scrapingService.savePreProcessedArticles(fetchedArticles);
-//
-//        //get websites from pre-processed-articles document (Way to fix microservice bug)
-//        log.info("getting websites from pre-processed-articles document");
-//        List<PreProcessedArticle> preProcessedArticles = scrapingService.getAllPreprocessedArticles();
-
-        //save pre-processed-articles to elastic
-
-        return fetchedArticles;
+        return ResponseEntity.status(HttpStatus.OK).body(fetchedArticles);
     }
 
     @PostMapping("/scrape/elastic")
@@ -58,9 +51,39 @@ public class ScrapingController {
         return scrapingService.saveToElastic();
     }
 
+    @GetMapping("/website")
+    public ResponseEntity<List<Website>> getAllWebsites() {
+        return websiteService.getAllWebsites();
+    }
+
+    @GetMapping("/website/{uuid}")
+    public ResponseEntity<Website> getWebsiteById(@PathVariable String uuid) {
+        return websiteService.getWebsiteByUUID(uuid);
+    }
+
     @PostMapping("/website/add")
     public ResponseEntity<Website> saveWebsite(@RequestBody Website website) {
         return websiteService.saveWebsite(website);
+    }
+
+    @PutMapping("/website/edit")
+    public ResponseEntity<Website> editWebsite(@RequestBody Website editedWebsite) {
+        return websiteService.editWebsite(editedWebsite);
+    }
+
+    @PostMapping("/website/category/add")
+    public ResponseEntity<Website> saveWebsiteCategory(@RequestBody AddCategoryRequest addCategoryRequest) {
+        String id = addCategoryRequest.getId();
+        String category = addCategoryRequest.getCategory();
+        String url = addCategoryRequest.getUrl();
+        return websiteService.saveWebsiteCategory(id, category, url);
+    }
+
+    @PutMapping("/website/category/delete")
+    public ResponseEntity<Website> deleteWebsiteCategory(@RequestBody DeleteCategoryRequest deleteCategoryRequest) {
+        String id = deleteCategoryRequest.getId();
+        HashMap<String,String> categories = deleteCategoryRequest.getCategories();
+        return websiteService.deleteWebsiteCategory(id,categories);
     }
 
     @DeleteMapping("/website/delete")
@@ -68,13 +91,18 @@ public class ScrapingController {
         return websiteService.deleteWebsiteByTitle(title);
     }
 
-    @PostMapping("/website/add/{id}")
+    @PostMapping("/selector/add/{id}")
     public ResponseEntity<Selector> addSelector(@PathVariable String id, @RequestBody String newSelector) {
         return selectorService.addSelector(id, newSelector);
     }
 
-    @DeleteMapping("/website/delete/{id}")
+    @DeleteMapping("/selector/delete/{id}")
     public ResponseEntity<Selector> deleteSelectorByName(@PathVariable String id, @RequestBody String selectorToRemove) {
         return selectorService.removeSelector(id, selectorToRemove);
+    }
+
+    @GetMapping("/selectors")
+    public ResponseEntity<List<Selector>> getAllSelectors() {
+        return selectorService.getAllSelectors();
     }
 }

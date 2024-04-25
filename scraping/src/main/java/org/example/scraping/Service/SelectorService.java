@@ -8,11 +8,21 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @AllArgsConstructor
 @Slf4j
 public class SelectorService {
     private final SelectorRepository selectorRepository;
+
+    public ResponseEntity<List<Selector>> getAllSelectors() {
+        List<Selector> selectors = selectorRepository.findAll();
+        if (selectors.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        }
+        return ResponseEntity.status(HttpStatus.OK).body(selectors);
+    }
 
     public ResponseEntity<Selector> addSelector(String id, String newSelector) {
         try {
