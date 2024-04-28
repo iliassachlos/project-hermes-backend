@@ -9,7 +9,9 @@ import org.example.scraping.Service.ScrapingService;
 import org.example.scraping.Service.SelectorService;
 import org.example.scraping.Service.WebsiteService;
 import org.example.scraping.dto.AddCategoryRequest;
+import org.example.scraping.dto.AddWebsiteRequest;
 import org.example.scraping.dto.DeleteCategoryRequest;
+import org.example.scraping.dto.EditWebsiteRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -60,13 +62,24 @@ public class ScrapingController {
     }
 
     @PostMapping("/website/add")
-    public ResponseEntity<Website> saveWebsite(@RequestBody Website website) {
-        return websiteService.saveWebsite(website);
+    public ResponseEntity<Website> saveWebsite(@RequestBody AddWebsiteRequest addWebsiteRequest) {
+        String title = addWebsiteRequest.getTitle();
+        String icon = addWebsiteRequest.getIcon();
+        String value = addWebsiteRequest.getValue();
+        return websiteService.saveWebsite(title, icon, value);
     }
 
-    @PutMapping("/website/edit")
-    public ResponseEntity<Website> editWebsite(@RequestBody Website editedWebsite) {
-        return websiteService.editWebsite(editedWebsite);
+    @PutMapping("/website/{uuid}/edit")
+    public ResponseEntity<Website> editWebsite(@PathVariable String uuid, @RequestBody EditWebsiteRequest editWebsiteRequest) {
+        String title = editWebsiteRequest.getTitle();
+        String icon = editWebsiteRequest.getIcon();
+        String value = editWebsiteRequest.getValue();
+        return websiteService.editWebsite(uuid, title, icon, value);
+    }
+
+    @DeleteMapping("/website/{uuid}/delete")
+    public ResponseEntity<String> deleteWebsite(@PathVariable String uuid) {
+        return websiteService.deleteWebsite(uuid);
     }
 
     @PostMapping("/website/category/add")
@@ -82,11 +95,6 @@ public class ScrapingController {
         String id = deleteCategoryRequest.getId();
         String categoryToDelete = deleteCategoryRequest.getCategoryToDelete();
         return websiteService.deleteWebsiteCategory(id, categoryToDelete);
-    }
-
-    @DeleteMapping("/website/delete")
-    public ResponseEntity<String> deleteWebsite(@RequestBody String title) {
-        return websiteService.deleteWebsiteByTitle(title);
     }
 
     @PostMapping("/selector/add/{id}")

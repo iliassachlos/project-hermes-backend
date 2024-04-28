@@ -2,14 +2,17 @@ package org.example.scraping.Service;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.bson.types.ObjectId;
 import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.WebsitesRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -48,20 +51,16 @@ public class WebsiteService {
 
     }
 
-    public ResponseEntity<Website> editWebsite(Website editedWebsite) {
+    public ResponseEntity<Website> editWebsite(String id, String title, String icon, String value) {
         try {
-            String websiteId = editedWebsite.getId().toString();
-            Website existingWebsite = websitesRepository.findById(websiteId).orElse(null);
+            Website existingWebsite = websitesRepository.findByUuid(id);
             if (existingWebsite == null) {
-                log.error("Website with id {} not found", websiteId);
+                log.error("Website with id {} not found", id);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-            Website.builder()
-                    .title(editedWebsite.getTitle())
-                    .icon(editedWebsite.getIcon())
-                    .value(editedWebsite.getValue())
-                    .categories(editedWebsite.getCategories())
-                    .build();
+            existingWebsite.setTitle(title);
+            existingWebsite.setIcon(icon);
+            existingWebsite.setValue(value);
             Website savedWebsite = websitesRepository.save(existingWebsite);
             log.info("Saved website with id: {}", savedWebsite);
             return ResponseEntity.status(HttpStatus.OK).body(savedWebsite);
@@ -71,10 +70,20 @@ public class WebsiteService {
         }
     }
 
-    public ResponseEntity<Website> saveWebsite(Website website) {
+    public ResponseEntity<Website> saveWebsite(String title, String icon, String value) {
         try {
-            Website savedWebsite = websitesRepository.save(website);
-            log.info("Created a new website with title = {}", website.getTitle());
+            Map<String, String> categories = new HashMap<>();
+            Website newWebsite = Website.builder()
+                    .id(new ObjectId())
+                    .uuid(UUID.randomUUID().toString())
+                    .title(title)
+                    .icon(icon)
+                    .value(value)
+                    .categories(categories)
+                    .build();
+
+            Website savedWebsite = websitesRepository.save(newWebsite);
+            log.info("Created a new website with title = {}", newWebsite.getTitle());
             return ResponseEntity.status(HttpStatus.OK).body(savedWebsite);
         } catch (Exception e) {
             log.error("Error occurred while saving website", e);
@@ -118,15 +127,15 @@ public class WebsiteService {
         }
     }
 
-    public ResponseEntity<String> deleteWebsiteByTitle(String title) {
+    public ResponseEntity<String> deleteWebsite(String id) {
         try {
-            Website website = websitesRepository.findByTitle(title);
+            Website website = websitesRepository.findByUuid(id);
             if (website == null) {
-                log.error("Article with title {} was not found", title);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article with title " + title + " was not found");
+                log.error("Article with title {} was not found", id);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article with title " + id + " was not found");
             } else {
                 websitesRepository.delete(website);
-                return ResponseEntity.status(HttpStatus.OK).body("Website: " + title + " was successfully deleted");
+                return ResponseEntity.status(HttpStatus.OK).body("Website: " + id + " was successfully deleted");
             }
         } catch (Exception e) {
             log.error("Error occurred while deleting website", e);
