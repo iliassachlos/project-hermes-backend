@@ -99,16 +99,18 @@ public class WebsiteService {
         }
     }
 
-    public ResponseEntity<Website> deleteWebsiteCategory(String id, Map<String, String> categories) {
+    public ResponseEntity<Website> deleteWebsiteCategory(String id, String categoryToDelete) {
         try {
             Website existingWebsite = websitesRepository.findByUuid(id);
             if (existingWebsite == null) {
                 log.error("Website with id {} not found", id);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
+            Map<String, String> categories = existingWebsite.getCategories();
+            categories.remove(categoryToDelete);
             existingWebsite.setCategories(categories);
             websitesRepository.save(existingWebsite);
-            log.info("Deleted website with id: {}", existingWebsite);
+            log.info("Deleted category: {}", categoryToDelete);
             return ResponseEntity.status(HttpStatus.OK).body(existingWebsite);
         } catch (Exception e) {
             log.error("An error occurred while deleting website", e);

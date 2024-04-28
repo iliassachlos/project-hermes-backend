@@ -14,9 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @Slf4j
@@ -82,8 +80,8 @@ public class ScrapingController {
     @PutMapping("/website/category/delete")
     public ResponseEntity<Website> deleteWebsiteCategory(@RequestBody DeleteCategoryRequest deleteCategoryRequest) {
         String id = deleteCategoryRequest.getId();
-        HashMap<String,String> categories = deleteCategoryRequest.getCategories();
-        return websiteService.deleteWebsiteCategory(id,categories);
+        String categoryToDelete = deleteCategoryRequest.getCategoryToDelete();
+        return websiteService.deleteWebsiteCategory(id, categoryToDelete);
     }
 
     @DeleteMapping("/website/delete")
