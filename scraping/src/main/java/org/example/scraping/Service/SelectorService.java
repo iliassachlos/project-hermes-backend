@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @Slf4j
 public class SelectorService {
+
     private final SelectorRepository selectorRepository;
 
     public ResponseEntity<List<Selector>> getAllSelectors() {

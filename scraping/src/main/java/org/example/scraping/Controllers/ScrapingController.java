@@ -28,9 +28,7 @@ public class ScrapingController {
     @GetMapping("/scrape")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<PreProcessedArticle>> fetchArticles() {
-        //Scrape websites
-        log.info("Fetching articles");
-        List<PreProcessedArticle> fetchedArticles = scrapingService.fetchArticlesFromWebsites();
+        List<PreProcessedArticle> fetchedArticles = scrapingService.scrapeArticles();
         scrapingService.savePreProcessedArticles(fetchedArticles);
         scrapingService.getAllPreprocessedArticles();
         return ResponseEntity.status(HttpStatus.OK).body(fetchedArticles);

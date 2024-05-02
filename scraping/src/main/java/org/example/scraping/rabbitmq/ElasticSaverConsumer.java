@@ -19,5 +19,6 @@ public class ElasticSaverConsumer {
     @RabbitListener(queues = "${rabbitmq.queues.elastic-saver}")
     public void saveArticle(List<PreProcessedArticle> preProcessedArticles) {
         elasticsearchClient.saveArticles(preProcessedArticles);
+        log.info("Finished saving to elastic");
     }
 }
