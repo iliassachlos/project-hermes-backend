@@ -9,13 +9,19 @@ import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.ArticleRepository;
 import org.example.scraping.Repositories.PreProcessedArticleRepository;
 import org.example.scraping.Repositories.WebsitesRepository;
+import org.example.scraping.utils.DateUtil;
 import org.example.scraping.utils.Scraper;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.select.Elements;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -36,6 +42,8 @@ public class ScrapingService {
         try {
             log.info("Starting fetching process...");
             Map<String, List<String>> allSelectors = scraper.getAllSelectorsForScraping();
+            List<String> timeSelectors = allSelectors.get("timeSelectors");
+
             List<Website> websites = websitesRepository.findAll();
 
             //Iterate over websites and categories
@@ -53,11 +61,14 @@ public class ScrapingService {
 
                     // Scraping articles from fetched URLs
                     for (int i = 0; i < Math.min(articleLinks.size(), articlesToScrape); i++) {
-                        PreProcessedArticle articleData = scraper.scrapeArticleContent(articleLinks.get(i), category);
-                        if (articleData != null) {
-                            articles.add(articleData);
-                        } else {
-                            log.warn("Article was 3 days old or more, skipped");
+                        String articleTimestamp = fetchArticleTime(Jsoup.connect(articleLinks.get(i)).get(), timeSelectors);
+                        if(articleTimestamp != null){
+                            PreProcessedArticle articleData = scraper.scrapeArticleContent(articleLinks.get(i), category, articleTimestamp);
+                            if (articleData != null) {
+                                articles.add(articleData);
+                            } else {
+                                log.warn("Article was 3 days old or more, skipped");
+                            }
                         }
                     }
                 }
@@ -176,5 +187,30 @@ public class ScrapingService {
             log.error("Error occurred while saving articles", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error occurred while saving articles" + e.getMessage());
         }
+    }
+
+    private String fetchArticleTime(Document document, List<String> timeSelectors) {
+        String time = null;
+        boolean foundTimestamp = false;
+        for (String selector : timeSelectors) {
+            // Select elements matching the current CSS selector
+            Elements elements = document.select(selector);
+            if (!elements.isEmpty()) {
+                time = elements.get(0).attr("datetime");
+                if (!Objects.equals(time, "")) {
+                    foundTimestamp = true;
+                }
+                break;
+            }
+        }
+        if (!foundTimestamp) {
+            time = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+        }
+
+        if (DateUtil.isArticleOlderThanThreeDays(time)) {
+            return null;
+        }
+
+        return time;
     }
 }

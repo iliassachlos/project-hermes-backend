@@ -23,7 +23,7 @@ public class DateUtil {
         for (DateTimeFormatter formatter : formatters) {
             try {
                 LocalDate articleDate = LocalDate.parse(dateString, formatter);
-                if (articleDate.isAfter(threeDaysAgo)) {
+                if (articleDate.isBefore(threeDaysAgo)) {
                     return true;
                 }
             } catch (DateTimeParseException e) {

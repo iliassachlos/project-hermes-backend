@@ -54,7 +54,7 @@ public class Scraper {
         return articleLinks;
     }
 
-    public PreProcessedArticle scrapeArticleContent(String articleURL, String category) {
+    public PreProcessedArticle scrapeArticleContent(String articleURL, String category, String articleTimestamp) {
         Map<String, List<String>> allSelectors = getAllSelectorsForScraping();
 
         List<String> titleSelectors = allSelectors.get("titleSelectors");
@@ -75,7 +75,7 @@ public class Scraper {
             String articleContent = fetchArticleContent(document, articleSelectors);
 
             // Fetch timestamp of the article
-            String articleTimestamp = fetchArticleTime(document, timeSelectors);
+//            String articleTimestamp = fetchArticleTime(document, timeSelectors);
 
             // Fetch source of the article
             String articleSource = fetchArticleSource(document, articleURL);
@@ -163,30 +163,30 @@ public class Scraper {
         return content;
     }
 
-    private String fetchArticleTime(Document document, List<String> timeSelectors) {
-        String time = null;
-        boolean foundTimestamp = false;
-        for (String selector : timeSelectors) {
-            // Select elements matching the current CSS selector
-            Elements elements = document.select(selector);
-            if (!elements.isEmpty()) {
-                time = elements.get(0).attr("datetime");
-                if (!Objects.equals(time, "")) {
-                    foundTimestamp = true;
-                }
-                break;
-            }
-        }
-        if (!foundTimestamp) {
-            time = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-        }
-
-        if (DateUtil.isArticleOlderThanThreeDays(time)) {
-            return null;
-        }
-
-        return time;
-    }
+//    private String fetchArticleTime(Document document, List<String> timeSelectors) {
+//        String time = null;
+//        boolean foundTimestamp = false;
+//        for (String selector : timeSelectors) {
+//            // Select elements matching the current CSS selector
+//            Elements elements = document.select(selector);
+//            if (!elements.isEmpty()) {
+//                time = elements.get(0).attr("datetime");
+//                if (!Objects.equals(time, "")) {
+//                    foundTimestamp = true;
+//                }
+//                break;
+//            }
+//        }
+//        if (!foundTimestamp) {
+//            time = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
+//        }
+//
+//        if (DateUtil.isArticleOlderThanThreeDays(time)) {
+//            return null;
+//        }
+//
+//        return time;
+//    }
 
     private String fetchArticleSource(Document document, String articleURL) {
         Element sourceElement = document.selectFirst("meta[property=og:site_name]");
