@@ -27,7 +27,7 @@ public class DateUtil {
                     return true;
                 }
             } catch (DateTimeParseException e) {
-                log.error("Invalid date format: {}", dateString);
+                log.warn("Invalid date format: {}", dateString);
             }
 
         }

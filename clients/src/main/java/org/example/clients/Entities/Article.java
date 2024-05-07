@@ -33,4 +33,6 @@ public class Article {
     private String category;
 
     private Integer views;
+
+    private Double sentiment;
 }

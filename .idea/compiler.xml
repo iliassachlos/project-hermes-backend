@@ -8,6 +8,7 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="apigw" />
+        <module name="machine-learning" />
         <module name="scraping" />
         <module name="clients" />
         <module name="elasticsearch" />
@@ -27,6 +28,7 @@
       <module name="clients" options="-parameters" />
       <module name="elasticsearch" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
+      <module name="machine-learning" options="-parameters" />
       <module name="mongoArticle" options="-parameters" />
       <module name="project-hermes-backend" options="" />
       <module name="scraping" options="-parameters" />

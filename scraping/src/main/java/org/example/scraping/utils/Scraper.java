@@ -3,7 +3,9 @@ package org.example.scraping.utils;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
+import org.example.clients.Entities.Article;
 import org.example.clients.Entities.PreProcessedArticle;
+import org.example.clients.MachineLearningClient;
 import org.example.scraping.Entities.Selector;
 import org.example.scraping.Repositories.SelectorRepository;
 import org.example.scraping.Repositories.WebsitesRepository;
@@ -16,8 +18,6 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Data
@@ -27,6 +27,8 @@ public class Scraper {
 
     private final SelectorRepository selectorRepository;
     private final WebsitesRepository websitesRepository;
+
+    private final MachineLearningClient machineLearningClient;
 
     public Map<String, List<String>> getAllSelectorsForScraping() {
         Map<String, List<String>> selectorsMap = new HashMap<>();

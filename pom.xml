@@ -24,6 +24,7 @@
         <module>apigw</module>
         <module>amqp</module>
         <module>elasticsearch</module>
+        <module>machine-learning</module>
     </modules>
 
     <properties>

@@ -2,10 +2,12 @@ package org.example.scraping.Controllers;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.clients.Entities.Article;
 import org.example.clients.Entities.PreProcessedArticle;
 import org.example.scraping.Service.ScrapingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,7 +27,7 @@ public class ScrapingController {
         return ResponseEntity.status(HttpStatus.OK).body(true);
     }
 
-    @GetMapping("/scrape")
+    @PostMapping("/scrape")
     @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<PreProcessedArticle>> fetchArticles() {
         List<PreProcessedArticle> fetchedArticles = scrapingService.scrapeArticles();
@@ -38,4 +40,27 @@ public class ScrapingController {
     private ResponseEntity<String> saveToElastic() {
         return scrapingService.saveToElastic();
     }
+
+    @Scheduled(fixedDelay = 120000) // 2 minutes delay
+    public void scheduledScrapeAndSaveToElastic() {
+        List<PreProcessedArticle> fetchedArticles = scrapingService.scrapeArticles();
+
+        scrapingService.savePreProcessedArticles(fetchedArticles);
+
+        List<Article> processedArticles = scrapingService.performMachineLearning();
+
+        scrapingService.saveToElastic();
+    }
+
+//    @Scheduled(fixedDelay = 120000) // 2 minutes delay
+//    public void scheduledScrapeAndSaveToElastic() {
+//        log.info("Entering scraping..");
+//        List<PreProcessedArticle> fetchedArticles = scrapingService.scrapeArticles();
+//        log.info("Entering saving preprocessed articles..");
+//        scrapingService.savePreProcessedArticles(fetchedArticles);
+//        log.info("Entering save to elastic..");
+//        scrapingService.saveToElastic();
+////        log.info("Entering machine-learning..");
+////        scrapingService.performMachineLearning();
+//    }
 }

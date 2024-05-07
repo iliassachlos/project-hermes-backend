@@ -28,6 +28,10 @@ spring:
           uri: lb://ELASTICSEARCH
           predicates:
             - Path=/api/elastic/**
+        - id: machine-learning
+          uri: lb://MACHINE-LEARNING
+          predicates:
+            - Path=/api/machine-learning/**
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
       globalcors:

@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.amqp.RabbitMQMessageProducer;
 import org.example.clients.Entities.Article;
 import org.example.clients.Entities.PreProcessedArticle;
+import org.example.clients.MachineLearningClient;
 import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.ArticleRepository;
 import org.example.scraping.Repositories.PreProcessedArticleRepository;
@@ -14,6 +15,8 @@ import org.example.scraping.utils.Scraper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -33,7 +36,10 @@ public class ScrapingService {
     private final ArticleRepository articleRepository;
     private final WebsitesRepository websitesRepository;
 
+    private final MachineLearningClient machineLearningClient;
+
     private final RabbitMQMessageProducer rabbitMQMessageProducer;
+    private final RabbitTemplate rabbitTemplate;
     private final Scraper scraper;
 
     public List<PreProcessedArticle> scrapeArticles() {
@@ -62,7 +68,7 @@ public class ScrapingService {
                     // Scraping articles from fetched URLs
                     for (int i = 0; i < Math.min(articleLinks.size(), articlesToScrape); i++) {
                         String articleTimestamp = fetchArticleTime(Jsoup.connect(articleLinks.get(i)).get(), timeSelectors);
-                        if(articleTimestamp != null){
+                        if (articleTimestamp != null) {
                             PreProcessedArticle articleData = scraper.scrapeArticleContent(articleLinks.get(i), category, articleTimestamp);
                             if (articleData != null) {
                                 articles.add(articleData);
@@ -177,11 +183,11 @@ public class ScrapingService {
 
     public ResponseEntity<String> saveToElastic() {
         try {
-            List<PreProcessedArticle> preProcessedArticles = preProcessedArticleRepository.findAll();
-            log.info("passing data to elastic");
+            List<PreProcessedArticle> articles = preProcessedArticleRepository.findAll();
+            log.info("Passing data to elastic");
             //elasticsearchClient.saveArticles(preProcessedArticles);
 
-            rabbitMQMessageProducer.publish(preProcessedArticles, "internal.exchange", "internal.elastic-saver.routing-key");
+            rabbitMQMessageProducer.publish(articles, "internal.exchange", "internal.elastic-saver.routing-key");
             return ResponseEntity.status(HttpStatus.OK).body("Save completed");
         } catch (Exception e) {
             log.error("Error occurred while saving articles", e);
@@ -212,5 +218,42 @@ public class ScrapingService {
         }
 
         return time;
+    }
+
+    public List<Article> performMachineLearning() {
+        log.info("Before performMachineLearning try-catch");
+        try {
+            List<PreProcessedArticle> articlesForProcess = preProcessedArticleRepository.findAll();
+            log.info("Fetched pre-processed articles: " + articlesForProcess.size());
+            List<Article> articles = new ArrayList<>();
+
+            for (PreProcessedArticle preProcessedArticle : articlesForProcess) {
+                String content = preProcessedArticle.getContent();
+
+
+                //Double sentiment = machineLearningClient.sentimentAnalysis(content);
+                Article processedArticle = Article.builder()
+                        .id(preProcessedArticle.getId())
+                        .uuid(preProcessedArticle.getUuid())
+                        .url(preProcessedArticle.getUrl())
+                        .title(preProcessedArticle.getTitle())
+                        .content(preProcessedArticle.getContent())
+                        .time(preProcessedArticle.getTime())
+                        .image(preProcessedArticle.getImage())
+                        .source(preProcessedArticle.getSource())
+                        .category(preProcessedArticle.getCategory())
+                        .views(preProcessedArticle.getViews())
+                        .sentiment(sentiment)
+                        .build();
+                articles.add(processedArticle);
+            }
+            log.info("Performed machine-learning");
+            articleRepository.saveAll(articles);
+            log.info("Articles saved: " + articles.size());
+            return articles;
+        } catch (Exception e) {
+            log.error("Error occurred while performing machine learning", e);
+            return null;
+        }
     }
 }

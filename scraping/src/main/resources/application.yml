@@ -28,5 +28,7 @@ rabbitmq:
     internal: internal.exchange
   queues:
     elastic-saver: elastic-saver.queue
+    machine-learning: machine-learning.queue
   routing-keys:
     internal-elastic-saver: internal.elastic-saver.routing-key
+    internal-machine-learning: internal.machine-learning.routing-key

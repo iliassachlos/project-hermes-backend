@@ -21,11 +21,18 @@ public class ElasticSaverConfig {
     @Value("${rabbitmq.routing-keys.internal-elastic-saver}")
     private String internalElasticSaverRoutingKey;
 
+    @Value("${rabbitmq.queues.machine-learning}")
+    private String machineLearningQueue;
+
+    @Value("${rabbitmq.routing-keys.internal-machine-learning}")
+    private String internalMachineLearningRoutingKey;
+
     @Bean
     public TopicExchange internalTopicExchange() {
         return new TopicExchange(this.internalExchange);
     }
 
+    //Elastic saver
     @Bean
     public Queue elasticSaverQueue() {
         return new Queue(this.elasticSaverQueue);
@@ -37,5 +44,19 @@ public class ElasticSaverConfig {
                 .bind(elasticSaverQueue())
                 .to(internalTopicExchange())
                 .with(this.internalElasticSaverRoutingKey);
+    }
+
+    //Machine-learning
+    @Bean
+    public Queue machineLearningQueue() {
+        return new Queue(this.machineLearningQueue);
+    }
+
+    @Bean
+    public Binding internalMachineLearningBinding() {
+        return BindingBuilder
+                .bind(machineLearningQueue())
+                .to(internalTopicExchange())
+                .with(this.internalMachineLearningRoutingKey);
     }
 }
