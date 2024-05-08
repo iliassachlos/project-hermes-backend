@@ -56,7 +56,7 @@ public class Scraper {
         return articleLinks;
     }
 
-    public PreProcessedArticle scrapeArticleContent(String articleURL, String category, String articleTimestamp) {
+    public Article scrapeArticleContent(String articleURL, String category, String articleTimestamp) {
         Map<String, List<String>> allSelectors = getAllSelectorsForScraping();
 
         List<String> titleSelectors = allSelectors.get("titleSelectors");
@@ -85,7 +85,7 @@ public class Scraper {
             // Fetch image of the article
             String articleImage = fetchArticleImage(document, articleSource);
 
-            return PreProcessedArticle.builder()
+            return Article.builder()
                     .uuid(UUID.randomUUID().toString())
                     .url(articleURL)
                     .title(articleTitle)

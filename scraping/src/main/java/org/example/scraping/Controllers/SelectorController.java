@@ -18,19 +18,19 @@ public class SelectorController {
 
     private final SelectorService selectorService;
 
-    @GetMapping("/selectors")
+    @GetMapping("/all")
     public ResponseEntity<List<Selector>> getAllSelectors() {
         return selectorService.getAllSelectors();
     }
 
-    @PostMapping("/{id}/add")
-    public ResponseEntity<Selector> addSelector(@PathVariable String id, @RequestBody String newSelector) {
-        return selectorService.addSelector(id, newSelector);
+    @PostMapping("/add")
+    public ResponseEntity<Selector> addSelector(@RequestBody String uuid, String newSelector) {
+        return selectorService.addSelector(uuid, newSelector);
     }
 
-    @DeleteMapping("/{id}/delete")
-    public ResponseEntity<Selector> deleteSelectorByName(@PathVariable String id, @RequestBody String selectorToRemove) {
-        return selectorService.removeSelector(id, selectorToRemove);
+    @DeleteMapping("/delete")
+    public ResponseEntity<Selector> deleteSelectorByName(@RequestBody String uuid, String selectorToRemove) {
+        return selectorService.removeSelector(uuid, selectorToRemove);
     }
 }
 

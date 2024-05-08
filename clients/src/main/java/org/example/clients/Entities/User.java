@@ -28,4 +28,6 @@ public class User {
     private Boolean isAdmin;
 
     private List<Article> bookmarkedArticles;
+
+    private List<String> savedQueries;
 }

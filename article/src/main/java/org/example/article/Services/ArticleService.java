@@ -2,7 +2,6 @@ package org.example.article.Services;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.amqp.RabbitMQMessageProducer;
 import org.example.article.Repositories.ArticleRepository;
 import org.example.clients.ElasticsearchClient;
 import org.example.clients.Entities.Article;
@@ -89,6 +88,21 @@ public class ArticleService {
                             .message("Failed to update views count")
                             .build()
             );
+        }
+    }
+
+    public ResponseEntity<String> deleteArticleByUuid(String uuid) {
+        try {
+            Article existingArticle = articleRepository.findByUuid(uuid);
+            if (existingArticle == null) {
+                log.error("Article with {} not found", uuid);
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article with " + uuid + " not found");
+            }
+            articleRepository.delete(existingArticle);
+            return ResponseEntity.status(HttpStatus.OK).body("Article with UUID: " + uuid + " deleted successfully");
+        } catch (Exception e) {
+            log.error("Error occurred while deleting article", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

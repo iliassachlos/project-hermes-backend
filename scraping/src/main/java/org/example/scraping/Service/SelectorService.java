@@ -25,9 +25,9 @@ public class SelectorService {
         return ResponseEntity.status(HttpStatus.OK).body(selectors);
     }
 
-    public ResponseEntity<Selector> addSelector(String id, String newSelector) {
+    public ResponseEntity<Selector> addSelector(String uuid, String newSelector) {
         try {
-            Selector selector = selectorRepository.findById(id).orElse(null);
+            Selector selector = selectorRepository.findById(uuid).orElse(null);
             if (selector == null) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             } else {
@@ -42,11 +42,11 @@ public class SelectorService {
 
     }
 
-    public ResponseEntity<Selector> removeSelector(String id, String selectorToRemove) {
+    public ResponseEntity<Selector> removeSelector(String uuid, String selectorToRemove) {
         try {
-            Selector selector = selectorRepository.findById(id).orElse(null);
+            Selector selector = selectorRepository.findById(uuid).orElse(null);
             if (selector == null) {
-                log.error("Selector with id {} not found", id);
+                log.error("Selector with id {} not found", uuid);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             } else {
                 selector.getSelectors().remove(selectorToRemove);

@@ -42,8 +42,8 @@ public class ScrapingService {
     private final RabbitTemplate rabbitTemplate;
     private final Scraper scraper;
 
-    public List<PreProcessedArticle> scrapeArticles() {
-        List<PreProcessedArticle> articles = new ArrayList<>();
+    public List<Article> scrapeArticles() {
+        List<Article> articles = new ArrayList<>();
         Integer articlesToScrape = 1;
         try {
             log.info("Starting fetching process...");
@@ -69,7 +69,7 @@ public class ScrapingService {
                     for (int i = 0; i < Math.min(articleLinks.size(), articlesToScrape); i++) {
                         String articleTimestamp = fetchArticleTime(Jsoup.connect(articleLinks.get(i)).get(), timeSelectors);
                         if (articleTimestamp != null) {
-                            PreProcessedArticle articleData = scraper.scrapeArticleContent(articleLinks.get(i), category, articleTimestamp);
+                            Article articleData = scraper.scrapeArticleContent(articleLinks.get(i), category, articleTimestamp);
                             if (articleData != null) {
                                 articles.add(articleData);
                             } else {
@@ -183,7 +183,7 @@ public class ScrapingService {
 
     public ResponseEntity<String> saveToElastic() {
         try {
-            List<PreProcessedArticle> articles = preProcessedArticleRepository.findAll();
+            List<Article> articles = articleRepository.findAll();
             log.info("Passing data to elastic");
             //elasticsearchClient.saveArticles(preProcessedArticles);
 
@@ -243,7 +243,7 @@ public class ScrapingService {
                         .source(preProcessedArticle.getSource())
                         .category(preProcessedArticle.getCategory())
                         .views(preProcessedArticle.getViews())
-                        .sentiment(sentiment)
+                        //.sentiment(sentiment)
                         .build();
                 articles.add(processedArticle);
             }

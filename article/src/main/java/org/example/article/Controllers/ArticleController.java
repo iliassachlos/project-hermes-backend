@@ -27,21 +27,23 @@ public class ArticleController {
     }
 
     @GetMapping("/all")
-    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<List<Article>> getAllArticles() {
         return articleService.getAllArticles();
     }
 
     @GetMapping("/{id}")
-    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<Article> getArticleById(@PathVariable String id) {
         return articleService.getArticleByUuid(id);
     }
 
     @PutMapping("/{id}/views")
-    @ResponseStatus(HttpStatus.OK)
     public ResponseEntity<ViewsResponse> updateArticleViewCount(@PathVariable String id) {
         return articleService.updateArticleViewCount(id);
+    }
+
+    @DeleteMapping("/{uuid}/delete")
+    public ResponseEntity<String> deleteByUuid(@PathVariable String uuid) {
+        return articleService.deleteArticleByUuid(uuid);
     }
 
 }

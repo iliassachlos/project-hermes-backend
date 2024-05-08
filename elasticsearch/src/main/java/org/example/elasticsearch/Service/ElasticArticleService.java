@@ -26,7 +26,7 @@ public class ElasticArticleService {
     private final ElasticArticleRepository articleRepository;
     private final ElasticsearchClient elasticsearchClient;
 
-    private ElasticArticle transformArticleToElasticArticle(PreProcessedArticle article) {
+    private ElasticArticle transformArticleToElasticArticle(Article article) {
         return ElasticArticle.builder()
                 .id(article.getId())
                 .uuid(article.getUuid())
@@ -41,10 +41,10 @@ public class ElasticArticleService {
                 .build();
     }
 
-    public void saveArticles(List<PreProcessedArticle> preProcessedArticles) {
+    public void saveArticles(List<Article> preProcessedArticles) {
         List<ElasticArticle> elasticArticles = new ArrayList<>();
         try {
-            for (PreProcessedArticle article : preProcessedArticles) {
+            for (Article article : preProcessedArticles) {
                 elasticArticles.add(transformArticleToElasticArticle(article));
             }
             articleRepository.saveAll(elasticArticles);

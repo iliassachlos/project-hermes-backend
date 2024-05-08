@@ -27,40 +27,25 @@ public class ScrapingController {
         return ResponseEntity.status(HttpStatus.OK).body(true);
     }
 
-    @PostMapping("/scrape")
-    @ResponseStatus(HttpStatus.OK)
-    public ResponseEntity<List<PreProcessedArticle>> fetchArticles() {
-        List<PreProcessedArticle> fetchedArticles = scrapingService.scrapeArticles();
-        scrapingService.savePreProcessedArticles(fetchedArticles);
-        scrapingService.getAllPreprocessedArticles();
-        return ResponseEntity.status(HttpStatus.OK).body(fetchedArticles);
-    }
+//    @PostMapping("/scrape")
+//    @ResponseStatus(HttpStatus.OK)
+//    public ResponseEntity<List<PreProcessedArticle>> fetchArticles() {
+//        List<PreProcessedArticle> fetchedArticles = scrapingService.scrapeArticles();
+//        scrapingService.savePreProcessedArticles(fetchedArticles);
+//        scrapingService.getAllPreprocessedArticles();
+//        return ResponseEntity.status(HttpStatus.OK).body(fetchedArticles);
+//    }
 
     @PostMapping("/scrape/elastic")
     private ResponseEntity<String> saveToElastic() {
         return scrapingService.saveToElastic();
     }
 
-    @Scheduled(fixedDelay = 120000) // 2 minutes delay
-    public void scheduledScrapeAndSaveToElastic() {
-        List<PreProcessedArticle> fetchedArticles = scrapingService.scrapeArticles();
-
-        scrapingService.savePreProcessedArticles(fetchedArticles);
-
-        List<Article> processedArticles = scrapingService.performMachineLearning();
-
-        scrapingService.saveToElastic();
-    }
-
 //    @Scheduled(fixedDelay = 120000) // 2 minutes delay
 //    public void scheduledScrapeAndSaveToElastic() {
-//        log.info("Entering scraping..");
-//        List<PreProcessedArticle> fetchedArticles = scrapingService.scrapeArticles();
-//        log.info("Entering saving preprocessed articles..");
-//        scrapingService.savePreProcessedArticles(fetchedArticles);
-//        log.info("Entering save to elastic..");
+//        List<Article> fetchedArticles = scrapingService.scrapeArticles();
+//        scrapingService.saveArticles(fetchedArticles);
+//        //List<Article> processedArticles = scrapingService.performMachineLearning();
 //        scrapingService.saveToElastic();
-////        log.info("Entering machine-learning..");
-////        scrapingService.performMachineLearning();
 //    }
 }

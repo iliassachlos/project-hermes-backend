@@ -22,7 +22,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/status")
-    public ResponseEntity<Boolean> checkUserServiceStatus(){
+    public ResponseEntity<Boolean> checkUserServiceStatus() {
         log.info("Fetched service status");
         return ResponseEntity.status(HttpStatus.OK).body(true);
     }
@@ -42,7 +42,7 @@ public class UserController {
         return userService.loginUser(email, password);
     }
 
-    @GetMapping
+    @GetMapping("/all")
     public ResponseEntity<List<User>> getAllUsers() {
         return userService.getAllUsers();
     }
@@ -52,9 +52,14 @@ public class UserController {
         return userService.getUserById(id);
     }
 
-    @GetMapping("/bookmarks/{userId}")
-    public ResponseEntity<List<Article>> getAllBookmarkedArticlesById(@PathVariable String userId) {
-        return userService.getAllBookmarkedArticlesById(userId);
+    @GetMapping("/{id}/admin-status")
+    public ResponseEntity<Boolean> isUserAdmin(@PathVariable String id) {
+        return userService.isUserAdmin(id);
+    }
+
+    @GetMapping("/bookmarks/{id}")
+    public ResponseEntity<List<Article>> getAllBookmarkedArticlesById(@PathVariable String id) {
+        return userService.getAllBookmarkedArticlesById(id);
     }
 
     @PostMapping("/bookmarks/add")
@@ -69,5 +74,24 @@ public class UserController {
         String userId = bookmarkRequest.getUserId();
         String articleId = bookmarkRequest.getArticleId();
         return userService.deleteBookmarkArticleById(userId, articleId);
+    }
+
+    @GetMapping("/queries/{id}/all")
+    public ResponseEntity<List<String>> getAllQueries(@PathVariable String id) {
+        return userService.getAllQueries(id);
+    }
+
+    @PostMapping("/queries/add")
+    public ResponseEntity<String> addQuery(@RequestBody AddQueryRequest addQueryRequest) {
+        String userId = addQueryRequest.getId();
+        String query = addQueryRequest.getQuery();
+        return userService.addQuery(userId, query);
+    }
+
+    @DeleteMapping("/queries/delete")
+    public ResponseEntity<String> deleteQuery(@RequestBody DeleteQueryRequest deleteQueryRequest) {
+        String userId = deleteQueryRequest.getId();
+        Integer index = deleteQueryRequest.getIndex();
+        return userService.deleteQuery(userId, index);
     }
 }
