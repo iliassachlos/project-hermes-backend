@@ -274,6 +274,7 @@ public class UserService {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
             }
             List<String> queries = existingUser.getSavedQueries();
+            log.info("Fetched all queries for user {}", id);
             return ResponseEntity.status(HttpStatus.OK).body(queries);
         } catch (Exception e) {
             log.error("An error occurred while getting saved queries", e);

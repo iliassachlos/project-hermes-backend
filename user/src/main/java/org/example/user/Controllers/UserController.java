@@ -88,10 +88,8 @@ public class UserController {
         return userService.addQuery(userId, query);
     }
 
-    @DeleteMapping("/queries/delete")
-    public ResponseEntity<String> deleteQuery(@RequestBody DeleteQueryRequest deleteQueryRequest) {
-        String userId = deleteQueryRequest.getId();
-        Integer index = deleteQueryRequest.getIndex();
-        return userService.deleteQuery(userId, index);
+    @DeleteMapping("/queries/{id}/{index}/delete")
+    public ResponseEntity<String> deleteQuery(@PathVariable String id, @PathVariable Integer index) {
+        return userService.deleteQuery(id, index);
     }
 }
