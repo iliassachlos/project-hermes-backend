@@ -1,9 +1,12 @@
 package org.example.elasticsearch.Controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import lombok.extern.slf4j.Slf4j;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.search.SearchHit;
+import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.example.clients.Entities.Article;
 import org.example.clients.Entities.PreProcessedArticle;
 import org.example.elasticsearch.Entities.ElasticArticle;
@@ -19,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @Slf4j
@@ -43,17 +47,28 @@ public class ElasticArticleController {
 
     @PostMapping("/search")
     public Map<String, Object> dynamicSearch(@RequestBody BooleanSearchRequest searchParams) throws IOException {
-        SearchResponse<ElasticArticle> searchResponse = elasticArticleService.dynamicBoolQueryImpl(searchParams);
+        SearchResponse searchResponse = elasticArticleService.dynamicBoolQueryImpl(searchParams);
 
+        ObjectMapper objectMapper = new ObjectMapper();
         List<ElasticArticle> articles = new ArrayList<>();
-        for (Hit<ElasticArticle> hit : searchResponse.hits().hits()) {
-            articles.add(hit.source());
+        for (SearchHit hit : searchResponse.getHits().getHits()) {
+            Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+            ElasticArticle article = objectMapper.convertValue(sourceAsMap, ElasticArticle.class);
+            articles.add(article);
         }
+
+        Terms categories = searchResponse.getAggregations().get("category_agg");
+        List<? extends Terms.Bucket> categoryBuckets = categories.getBuckets();
+
+        Terms sources = searchResponse.getAggregations().get("source_agg");
+        List<? extends Terms.Bucket> sourceBuckets = sources.getBuckets();
 
         Map<String, Object> response = new HashMap<>();
         response.put("articles", articles);
-        response.put("totalHits", searchResponse.hits().total().value()); // Total hits metadata
-        response.put("maxScore", searchResponse.hits().maxScore()); // Max score metadata
+        response.put("totalHits", searchResponse.getHits().getTotalHits().value); // Total hits metadata
+        response.put("maxScore", searchResponse.getHits().getMaxScore()); // Max score metadata
+        response.put("categoryFacets", categoryBuckets.stream().collect(Collectors.toMap(Terms.Bucket::getKeyAsString, Terms.Bucket::getDocCount)));
+        response.put("sourceFacets", sourceBuckets.stream().collect(Collectors.toMap(Terms.Bucket::getKeyAsString, Terms.Bucket::getDocCount)));
         return response;
     }
 }
