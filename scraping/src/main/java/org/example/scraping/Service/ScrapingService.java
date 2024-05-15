@@ -16,7 +16,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -218,42 +217,5 @@ public class ScrapingService {
         }
 
         return time;
-    }
-
-    public List<Article> performMachineLearning() {
-        log.info("Before performMachineLearning try-catch");
-        try {
-            List<PreProcessedArticle> articlesForProcess = preProcessedArticleRepository.findAll();
-            log.info("Fetched pre-processed articles: " + articlesForProcess.size());
-            List<Article> articles = new ArrayList<>();
-
-            for (PreProcessedArticle preProcessedArticle : articlesForProcess) {
-                String content = preProcessedArticle.getContent();
-
-
-                //Double sentiment = machineLearningClient.sentimentAnalysis(content);
-                Article processedArticle = Article.builder()
-                        .id(preProcessedArticle.getId())
-                        .uuid(preProcessedArticle.getUuid())
-                        .url(preProcessedArticle.getUrl())
-                        .title(preProcessedArticle.getTitle())
-                        .content(preProcessedArticle.getContent())
-                        .time(preProcessedArticle.getTime())
-                        .image(preProcessedArticle.getImage())
-                        .source(preProcessedArticle.getSource())
-                        .category(preProcessedArticle.getCategory())
-                        .views(preProcessedArticle.getViews())
-                        //.sentiment(sentiment)
-                        .build();
-                articles.add(processedArticle);
-            }
-            log.info("Performed machine-learning");
-            articleRepository.saveAll(articles);
-            log.info("Articles saved: " + articles.size());
-            return articles;
-        } catch (Exception e) {
-            log.error("Error occurred while performing machine learning", e);
-            return null;
-        }
     }
 }

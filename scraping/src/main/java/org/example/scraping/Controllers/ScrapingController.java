@@ -3,6 +3,7 @@ package org.example.scraping.Controllers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.clients.Entities.Article;
+import org.example.clients.MachineLearningClient;
 import org.example.scraping.Service.ScrapingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,7 @@ import java.util.List;
 public class ScrapingController {
 
     private final ScrapingService scrapingService;
+    private final MachineLearningClient machineLearningClient;
 
     @GetMapping("/status")
     public ResponseEntity<Boolean> checkScrapingServiceStatus() {
@@ -44,7 +46,6 @@ public class ScrapingController {
     public void scheduledScrapeAndSaveToElastic() {
         List<Article> fetchedArticles = scrapingService.scrapeArticles();
         scrapingService.saveArticles(fetchedArticles);
-        //List<Article> processedArticles = scrapingService.performMachineLearning();
         scrapingService.saveToElastic();
     }
 }

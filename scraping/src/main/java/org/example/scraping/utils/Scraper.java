@@ -4,8 +4,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.example.clients.Entities.Article;
-import org.example.clients.Entities.PreProcessedArticle;
 import org.example.clients.MachineLearningClient;
+import org.example.clients.dto.scraping.SentimentRequest;
 import org.example.scraping.Entities.Selector;
 import org.example.scraping.Repositories.SelectorRepository;
 import org.example.scraping.Repositories.WebsitesRepository;
@@ -13,7 +13,12 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import java.io.IOException;
 import java.net.URI;
@@ -29,6 +34,8 @@ public class Scraper {
     private final WebsitesRepository websitesRepository;
 
     private final MachineLearningClient machineLearningClient;
+
+    private final RestTemplate restTemplate;
 
     public Map<String, List<String>> getAllSelectorsForScraping() {
         Map<String, List<String>> selectorsMap = new HashMap<>();
@@ -85,6 +92,10 @@ public class Scraper {
             // Fetch image of the article
             String articleImage = fetchArticleImage(document, articleSource);
 
+            //Fetch sentiment of the article
+            SentimentRequest sentimentRequest = new SentimentRequest(articleContent);
+            Double articleSentiment = fetchArticleSentiment(sentimentRequest);
+
             return Article.builder()
                     .uuid(UUID.randomUUID().toString())
                     .url(articleURL)
@@ -95,6 +106,7 @@ public class Scraper {
                     .source(articleSource)
                     .category(category)
                     .views(randomViews)
+                    .sentiment(articleSentiment)
                     .build();
         } catch (IOException e) {
             log.error("Error Scraping Articles " + e.getMessage());
@@ -243,6 +255,35 @@ public class Scraper {
             }
         }
         return image;
+    }
+
+    private Double fetchArticleSentiment(SentimentRequest articleContent) {
+        if (articleContent == null || articleContent.getText() == null || articleContent.getText().isEmpty()) {
+            log.warn("Skipping sentiment analysis due to null or empty article content");
+            return null;
+        }
+
+        // Set the URL of your Python microservice
+        String url = "http://localhost:8000/api/machine-learning/sentiment";
+
+        // Set headers
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        String modifiedContent = articleContent.getText()
+                .replace("\"", "'")
+                .replace("{", "")
+                .replace("[", "")
+                .replace("(", "");
+
+        // Set the request body
+        String requestBody = "{\"text\": \"" + articleContent.getText() + "\"}"; // Use getText() instead of articleContent
+        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
+
+        // Send the POST request and get the response
+        ResponseEntity<Double> responseEntity = restTemplate.postForEntity(url, requestEntity, Double.class);
+
+        return responseEntity.getBody();
     }
 }
 

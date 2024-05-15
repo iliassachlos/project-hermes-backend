@@ -38,19 +38,19 @@ class SentimentRequest(BaseModel):
 
 
 @app.post("/api/machine-learning/sentiment")
-async def analyze_sentiment(request: SentimentRequest):
+async def analyze_sentiment(articleContent: SentimentRequest):
     # Check if text is empty
-    if not request.text.strip():
+    if not articleContent.text.strip():
         raise HTTPException(status_code=404, detail="Text is empty")
 
     # Initialize SentimentIntensityAnalyzer
     sia = SentimentIntensityAnalyzer()
 
     # Perform sentiment analysis using NLTK's VADER
-    sentiment_scores = sia.polarity_scores(request.text)
+    sentiment_scores = sia.polarity_scores(articleContent.text)
     compound_score = sentiment_scores['compound']
 
-    return {"sentiment_score": compound_score}
+    return compound_score
 
 
 # Run registration with Eureka asynchronously
