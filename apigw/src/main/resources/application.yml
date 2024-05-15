@@ -29,7 +29,7 @@ spring:
           predicates:
             - Path=/api/elastic/**
         - id: machine-learning
-          uri: lb://MACHINE-LEARNING
+          uri: http://localhost:8000
           predicates:
             - Path=/api/machine-learning/**
       default-filters:
@@ -37,7 +37,7 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowed-origins: "http://localhost:3000"
+            allowed-origins: "http://localhost:3000,http://localhost:8000"
             allowed-headers: "*"
             allowed-methods:
               - GET
