@@ -3,8 +3,6 @@ package org.example.user.Services;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.example.clients.ArticleClient;
-import org.example.clients.Entities.Article;
 import org.example.clients.Entities.User;
 import org.example.user.Repositories.UserRepository;
 import org.example.clients.dto.user.LoginUserResponse;
@@ -22,8 +20,6 @@ import java.util.*;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
-    private final ArticleClient articleClient;
-
     private final PasswordEncoder passwordEncoder;
 
     public ResponseEntity<RegisterUserResponse> registerUser(String username, String email, String password) {
@@ -176,146 +172,6 @@ public class UserService {
             return ResponseEntity.status(HttpStatus.OK).body(user.getIsAdmin());
         } catch (Exception e) {
             log.error("An error occurred while checking if user is admin", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    public ResponseEntity<List<Article>> getAllBookmarkedArticlesById(String id) {
-        try {
-            User user = userRepository.findUserById(id);
-            if (user == null) {
-                log.error("User was not found");
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            } else {
-                List<Article> bookmarkedArticles = user.getBookmarkedArticles();
-                log.info("All bookmarked articles fetched successfully");
-                return ResponseEntity.status(HttpStatus.OK).body(bookmarkedArticles);
-            }
-        } catch (Exception e) {
-            log.error("An error occured while fetching bookmarked articles", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    public ResponseEntity<String> addBookmarkArticle(String userId, String articleId) {
-        try {
-            User user = userRepository.findUserById(userId);
-            Article article = articleClient.getArticleById(articleId);
-
-            if (user == null) {
-                log.error("User with ID {} was not found", userId);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with ID " + userId + " was not found");
-            }
-
-            if (article == null) {
-                log.error("Article with ID {} was not found", articleId);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article with ID " + articleId + " was not found");
-            }
-
-            Set<Article> bookmarkedArticles = new HashSet<>(user.getBookmarkedArticles());
-
-            // Add the article to the set; duplicates will not be added
-            boolean isAdded = bookmarkedArticles.add(article);
-            if (!isAdded) {
-                log.info("Article with ID {} is already bookmarked for user {}", articleId, userId);
-                return ResponseEntity.status(HttpStatus.CONFLICT).body("Article with ID " + articleId + " is already bookmarked for user " + userId);
-            }
-
-            // Save the updated set back to the user's bookmarked articles
-            user.setBookmarkedArticles(new ArrayList<>(bookmarkedArticles));
-            userRepository.save(user);
-
-            log.info("Bookmark for user {} added successfully", userId);
-            return ResponseEntity.status(HttpStatus.OK).body("Bookmark for user " + userId + " added successfully");
-        } catch (Exception e) {
-            log.error("Error adding bookmark for user: {}", userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error adding bookmark for user: " + userId);
-        }
-    }
-
-    public ResponseEntity<String> deleteBookmarkArticleById(String userId, String articleId) {
-        try {
-            User user = userRepository.findUserById(userId);
-
-            if (user == null) {
-                log.error("User with ID {} was not found", userId);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with ID " + userId + " was not found");
-            }
-
-            List<Article> bookmarkedArticles = user.getBookmarkedArticles();
-            if (bookmarkedArticles == null) {
-                log.error("No bookmarked articles found for user {}", userId);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No bookmarked articles found for user " + userId);
-            }
-
-            // Iterate over the bookmarked articles to find the one with the specified ID
-            boolean removed = bookmarkedArticles.removeIf(article -> article.getUuid().equals(articleId));
-            if (!removed) {
-                log.error("Article with ID {} not found in bookmarked articles for user {}", articleId, userId);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Article with ID " + articleId + " not found in bookmarked articles for user " + userId);
-            }
-
-            // Save the updated user without the deleted bookmarked article
-            userRepository.save(user);
-
-            log.info("Bookmark article with ID {} deleted successfully for user {}", articleId, userId);
-            return ResponseEntity.status(HttpStatus.OK).body("Bookmark article with ID " + articleId + " deleted successfully");
-        } catch (Exception e) {
-            log.error("Error deleting bookmark article with ID {} for user: {}", articleId, userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error deleting bookmark for user: " + userId);
-        }
-    }
-
-    public ResponseEntity<List<String>> getAllQueries(String id) {
-        try {
-            User existingUser = userRepository.findUserById(id);
-            if (existingUser == null) {
-                log.error("User with ID {} was not found", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-            }
-            List<String> queries = existingUser.getSavedQueries();
-            log.info("Fetched all queries for user {}", id);
-            return ResponseEntity.status(HttpStatus.OK).body(queries);
-        } catch (Exception e) {
-            log.error("An error occurred while getting saved queries", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    public ResponseEntity<String> addQuery(String id, String query) {
-        try {
-            User existingUser = userRepository.findUserById(id);
-            if (existingUser == null) {
-                log.error("User with ID {} was not found", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with ID " + id + " was not found");
-            }
-            List<String> existingQueries = existingUser.getSavedQueries();
-            existingQueries.add(query);
-            existingUser.setSavedQueries(existingQueries);
-            userRepository.save(existingUser);
-            log.info("Query {} added successfully for user with id {}", query, id);
-            return ResponseEntity.status(HttpStatus.OK).body("Query " + query + " added onUser with ID " + id + " added successfully");
-        } catch (Exception e) {
-            log.error("An error occurred while adding query", e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
-        }
-    }
-
-    public ResponseEntity<String> deleteQuery(String id, Integer index) {
-        try {
-            User existingUser = userRepository.findUserById(id);
-            if (existingUser == null) {
-                log.error("User with ID {} was not found", id);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("User with ID " + id + " was not found");
-            }
-            List<String> existingQueries = existingUser.getSavedQueries();
-            existingQueries.remove(existingQueries.get(index));
-            existingUser.setSavedQueries(existingQueries);
-            userRepository.save(existingUser);
-            log.info("Query {} deleted successfully for user with id {}", index, id);
-            return ResponseEntity.status(HttpStatus.OK).body("Query deleted successfully for user with id " + id);
-        } catch (Exception e) {
-            log.error("An error occurred while deleting query", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

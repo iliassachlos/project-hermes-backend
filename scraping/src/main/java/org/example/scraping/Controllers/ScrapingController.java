@@ -3,7 +3,6 @@ package org.example.scraping.Controllers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.clients.Entities.Article;
-import org.example.clients.Entities.PreProcessedArticle;
 import org.example.scraping.Service.ScrapingService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,11 +40,11 @@ public class ScrapingController {
         return scrapingService.saveToElastic();
     }
 
-//    @Scheduled(fixedDelay = 120000) // 2 minutes delay
-//    public void scheduledScrapeAndSaveToElastic() {
-//        List<Article> fetchedArticles = scrapingService.scrapeArticles();
-//        scrapingService.saveArticles(fetchedArticles);
-//        //List<Article> processedArticles = scrapingService.performMachineLearning();
-//        scrapingService.saveToElastic();
-//    }
+    @Scheduled(fixedDelay = 120000) // 2 minutes delay
+    public void scheduledScrapeAndSaveToElastic() {
+        List<Article> fetchedArticles = scrapingService.scrapeArticles();
+        scrapingService.saveArticles(fetchedArticles);
+        //List<Article> processedArticles = scrapingService.performMachineLearning();
+        scrapingService.saveToElastic();
+    }
 }
