@@ -153,9 +153,8 @@ public class UserService {
             if (user == null) {
                 log.error("User was not found");
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-            } else {
-                return ResponseEntity.status(HttpStatus.OK).body(user);
             }
+            return ResponseEntity.status(HttpStatus.OK).body(user);
         } catch (Exception e) {
             log.error("Error occurred while finding user by id {}", id);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();

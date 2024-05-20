@@ -29,18 +29,13 @@ public class BookmarkServiceTest {
     @InjectMocks
     private BookmarkService bookmarkService;
 
+    private User user;
+    private Article article;
+
     @BeforeEach
     public void setUp() {
-        MockitoAnnotations.initMocks(this);
-    }
-
-    @Test
-    public void testGetAllBookmarkedArticlesById() {
-        //Arrange
-        String userId = "user123";
-        List<Article> expectedArticles = new ArrayList<>();
-        List<String> queries = new ArrayList<>();
-        expectedArticles.add(new Article(
+        MockitoAnnotations.openMocks(this);
+        article = new Article(
                 "id-1",
                 "uuid-1",
                 "https://example.com/examples/1",
@@ -51,25 +46,34 @@ public class BookmarkServiceTest {
                 "source1",
                 "category1",
                 72,
-                0.124)
+                0.124
         );
-        when(userRepository.findUserById(userId)).thenReturn(new User(
-                "user-1",
-                "user@test.com",
-                "userTest",
+        List<Article> bookmarkedArticles = new ArrayList<>();
+        bookmarkedArticles.add(article);
+
+        user = new User(
+                "user123",
+                "user123@test.com",
+                "user123",
                 "12345",
                 false,
-                expectedArticles,
-                queries)
+                bookmarkedArticles,
+                new ArrayList<>()
         );
+    }
 
-        // Invoke service method
+    @Test
+    public void testGetAllBookmarkedArticlesById_Success() {
+        // Arrange
+        String userId = "user123";
+        List<Article> expectedArticles = user.getBookmarkedArticles();
+        when(userRepository.findUserById(userId)).thenReturn(user);
+
+        // Act
         ResponseEntity<List<Article>> responseEntity = bookmarkService.getAllBookmarkedArticlesById(userId);
 
-        // Verify the response
-        //Check if status code is OK (200)
+        // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        //Check if articles equals to expectedArticles
         assertEquals(expectedArticles, responseEntity.getBody());
     }
 
@@ -89,54 +93,44 @@ public class BookmarkServiceTest {
     @Test
     public void testAddBookmarkArticle_Success() {
         // Arrange
-        when(userRepository.findUserById("user123")).thenReturn(new User(
+        User userWithoutBookmarks = new User(
                 "user123",
                 "user123@test.com",
                 "user123",
                 "12345",
                 false,
                 new ArrayList<>(),
-                new ArrayList<>()));
-        when(articleClient.getArticleById("article123")).thenReturn(new Article(
-                "id-1",
-                "uuid-1",
-                "https://example.com/examples/1",
-                "title 1",
-                "content 1",
-                "2024-05-14",
-                "http://example.com/image1",
-                "source1",
-                "category1",
-                72,
-                0.124)
+                new ArrayList<>()
         );
+        when(userRepository.findUserById(userWithoutBookmarks.getId())).thenReturn(userWithoutBookmarks);
+        when(articleClient.getArticleById(article.getId())).thenReturn(article);
 
         // Act
-        ResponseEntity<String> responseEntity = bookmarkService.addBookmarkArticle("user123", "article123");
+        ResponseEntity<String> responseEntity = bookmarkService.addBookmarkArticle(userWithoutBookmarks.getId(), article.getId());
 
         // Assert
         assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-        assertEquals("Bookmark for user user123 added successfully", responseEntity.getBody());
+        assertEquals("Bookmark for user " + userWithoutBookmarks.getId() + " added successfully", responseEntity.getBody());
     }
 
     @Test
     public void testAddBookmarkArticle_UserNotFound() {
         // Arrange
-        when(userRepository.findUserById("user123")).thenReturn(null);
+        when(userRepository.findUserById(user.getId())).thenReturn(null);
 
         // Act
-        ResponseEntity<String> responseEntity = bookmarkService.addBookmarkArticle("user123", "article123");
+        ResponseEntity<String> responseEntity = bookmarkService.addBookmarkArticle(user.getId(), article.getId());
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, responseEntity.getStatusCode());
-        assertEquals("User with ID user123 was not found", responseEntity.getBody());
+        assertEquals("User with ID " + user.getId() + " was not found", responseEntity.getBody());
     }
 
     @Test
     public void testDeleteBookmarkArticleById_UserNotFound() {
         // Arrange
         String userId = "nonExistingUser";
-        String articleId = "article123";
+        String articleId = article.getId();
         when(userRepository.findUserById(userId)).thenReturn(null);
 
         // Act
@@ -150,31 +144,8 @@ public class BookmarkServiceTest {
     @Test
     public void testDeleteBookmarkArticleById_ArticleNotFound() {
         // Arrange
-        String userId = "user123";
+        String userId = user.getId();
         String nonExistingArticleId = "nonExistingArticle123";
-        List<Article> bookmarkedArticles = new ArrayList<>();
-        bookmarkedArticles.add(new Article(
-                "article123",
-                "uuid-1",
-                "https://example.com/examples/1",
-                "title 1",
-                "content 1",
-                "2024-05-14",
-                "http://example.com/image1",
-                "source1",
-                "category1",
-                72,
-                0.124)
-        );
-        User user = new User(
-                userId,
-                "user123@test.com",
-                "user123",
-                "12345",
-                false,
-                new ArrayList<>(),
-                new ArrayList<>()
-        );
         when(userRepository.findUserById(userId)).thenReturn(user);
 
         // Act
@@ -188,8 +159,8 @@ public class BookmarkServiceTest {
     @Test
     public void testDeleteBookmarkArticleById_InternalServerError() {
         // Arrange
-        String userId = "user123";
-        String articleId = "article123";
+        String userId = user.getId();
+        String articleId = article.getId();
         when(userRepository.findUserById(userId)).thenThrow(new RuntimeException("Database connection error"));
 
         // Act
@@ -199,5 +170,4 @@ public class BookmarkServiceTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, responseEntity.getStatusCode());
         assertEquals("Error deleting bookmark for user: " + userId, responseEntity.getBody());
     }
-
 }
