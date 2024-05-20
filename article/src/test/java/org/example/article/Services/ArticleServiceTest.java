@@ -98,7 +98,7 @@ public class ArticleServiceTest {
 
     @Test
     public void testGetArticleByUuid_Success() {
-        //Assert
+        //Arrange
         String uuid = "uuid-1";
 
         Mockito.when(articleRepository.findByUuid(uuid)).thenReturn(article);
@@ -106,7 +106,7 @@ public class ArticleServiceTest {
         //Act
         ResponseEntity<Article> response = articleService.getArticleByUuid(uuid);
 
-        //Arrange
+        //Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(article, response.getBody());
         assertEquals(uuid, response.getBody().getUuid());
@@ -116,7 +116,7 @@ public class ArticleServiceTest {
 
     @Test
     public void testGetArticleByUuid_NotFound() {
-        //Assert
+        //Arrange
         String uuid = "uuid-1";
 
         Mockito.when(articleRepository.findByUuid(uuid)).thenReturn(null);
@@ -124,7 +124,7 @@ public class ArticleServiceTest {
         //Act
         ResponseEntity<Article> response = articleService.getArticleByUuid(uuid);
 
-        //Arrange
+        //Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNull(response.getBody());
 
@@ -133,7 +133,7 @@ public class ArticleServiceTest {
 
     @Test
     public void testGetArticleByUuid_InternalServerError() {
-        //Assert
+        //Arrange
         String uuid = "uuid-1";
 
         Mockito.when(articleRepository.findByUuid(uuid)).thenThrow(new RuntimeException());
@@ -141,7 +141,7 @@ public class ArticleServiceTest {
         //Act
         ResponseEntity<Article> response = articleService.getArticleByUuid(uuid);
 
-        //Arrange
+        //Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertNull(response.getBody());
 
@@ -150,7 +150,7 @@ public class ArticleServiceTest {
 
     @Test
     public void testUpdateArticleViewCount_Success() {
-        //Assert
+        //Arrange
         String uuid = "uuid-1";
         Integer currentViews = article.getViews();
 
@@ -160,7 +160,7 @@ public class ArticleServiceTest {
         //Act
         ResponseEntity<ViewsResponse> response = articleService.updateArticleViewCount(uuid);
 
-        //Arrange
+        //Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Article view count updated successfully", response.getBody().getMessage());
         assertEquals(currentViews + 1, response.getBody().getArticleViews());
@@ -171,7 +171,7 @@ public class ArticleServiceTest {
 
     @Test
     public void testUpdateArticleViewCount_ArticleNotFound() {
-        //Assert
+        //Arrange
         String uuid = "uuid-1";
 
         Mockito.when(articleRepository.findByUuid(uuid)).thenReturn(null);
@@ -179,7 +179,7 @@ public class ArticleServiceTest {
         //Act
         ResponseEntity<ViewsResponse> response = articleService.updateArticleViewCount(uuid);
 
-        //Arrange
+        //Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("Articles with UUID: " + uuid + " not found", response.getBody().getMessage());
 
@@ -189,13 +189,13 @@ public class ArticleServiceTest {
 
     @Test
     public void testUpdateArticleViewCount_InternalServerError() {
-        //Assert
+        //Arrange
         Mockito.when(articleRepository.findByUuid("uuid-1")).thenThrow(new RuntimeException());
 
         //Act
         ResponseEntity<ViewsResponse> response = articleService.updateArticleViewCount("uuid-1");
 
-        //Arrange
+        //Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
         assertEquals("Failed to update views count", response.getBody().getMessage());
 
@@ -204,7 +204,7 @@ public class ArticleServiceTest {
 
     @Test
     public void testDeleteArticleByUuid_Success() {
-        //Assert
+        //Arrange
         String uuid = "uuid-1";
 
         Mockito.when(articleRepository.findByUuid(uuid)).thenReturn(article);
@@ -212,7 +212,7 @@ public class ArticleServiceTest {
         //Act
         ResponseEntity<String> response = articleService.deleteArticleByUuid(uuid);
 
-        //Arrange
+        //Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals("Article with UUID: " + uuid + " deleted successfully", response.getBody());
 
@@ -222,7 +222,7 @@ public class ArticleServiceTest {
 
     @Test
     public void testDeleteArticleByUuid_ArticleNotFound() {
-        //Assert
+        //Arrange
         String uuid = "uuid-1";
 
         Mockito.when(articleRepository.findByUuid(uuid)).thenReturn(null);
@@ -230,7 +230,7 @@ public class ArticleServiceTest {
         //Act
         ResponseEntity<String> response = articleService.deleteArticleByUuid(uuid);
 
-        //Arrange
+        //Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertEquals("Article with " + uuid + " not found", response.getBody());
 
@@ -240,7 +240,7 @@ public class ArticleServiceTest {
 
     @Test
     public void testDeleteArticleByUuid_InternalServerError() {
-        //Assert
+        //Arrange
         String uuid = "uuid-1";
 
         Mockito.when(articleRepository.findByUuid(uuid)).thenThrow(new RuntimeException());
@@ -248,7 +248,7 @@ public class ArticleServiceTest {
         //Act
         ResponseEntity<String> response = articleService.deleteArticleByUuid(uuid);
 
-        //Arrange
+        //Assert
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
 
         verify(articleRepository, times(1)).findByUuid(uuid);
