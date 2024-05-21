@@ -13,10 +13,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
@@ -94,7 +91,7 @@ public class Scraper {
 
             //Fetch sentiment of the article
             SentimentRequest sentimentRequest = new SentimentRequest(articleContent);
-            Double articleSentiment = fetchArticleSentiment(sentimentRequest);
+            Integer articleSentiment = fetchArticleSentiment(sentimentRequest);
 
             return Article.builder()
                     .uuid(UUID.randomUUID().toString())
@@ -106,7 +103,7 @@ public class Scraper {
                     .source(articleSource)
                     .category(category)
                     .views(randomViews)
-                    .sentiment(articleSentiment)
+                    .sentimentScore(articleSentiment)
                     .build();
         } catch (IOException e) {
             log.error("Error Scraping Articles " + e.getMessage());
@@ -257,33 +254,26 @@ public class Scraper {
         return image;
     }
 
-    private Double fetchArticleSentiment(SentimentRequest articleContent) {
-        if (articleContent == null || articleContent.getText() == null || articleContent.getText().isEmpty()) {
-            log.warn("Skipping sentiment analysis due to null or empty article content");
-            return null;
+    private Integer fetchArticleSentiment(SentimentRequest sentimentRequest) {
+        try {
+            String url = "http://localhost:8000/api/machine-learning/sentiment";
+            RestTemplate restTemplate = new RestTemplate();
+            HttpHeaders headers = new HttpHeaders();
+            HttpMethod method = HttpMethod.POST;
+
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<SentimentRequest> requestEntity = new HttpEntity<>(sentimentRequest, headers);
+
+            ResponseEntity<Integer> responseEntity = restTemplate.exchange(url, method, requestEntity, Integer.class);
+            if (responseEntity.getStatusCode() != HttpStatus.OK) {
+                log.error("Failed to fetch sentiment score. Status Code: {}", responseEntity.getStatusCode());
+                return -1;
+            }
+            return responseEntity.getBody();
+        } catch (Exception e) {
+            log.error("Error fetching sentiment score: {}", e.getMessage());
+            return -1;
         }
-
-        // Set the URL of your Python microservice
-        String url = "http://localhost:8000/api/machine-learning/sentiment";
-
-        // Set headers
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        String modifiedContent = articleContent.getText()
-                .replace("\"", "'")
-                .replace("{", "")
-                .replace("[", "")
-                .replace("(", "");
-
-        // Set the request body
-        String requestBody = "{\"text\": \"" + articleContent.getText() + "\"}"; // Use getText() instead of articleContent
-        HttpEntity<String> requestEntity = new HttpEntity<>(requestBody, headers);
-
-        // Send the POST request and get the response
-        ResponseEntity<Double> responseEntity = restTemplate.postForEntity(url, requestEntity, Double.class);
-
-        return responseEntity.getBody();
     }
 }
 

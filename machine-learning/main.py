@@ -45,22 +45,6 @@ class SentimentRequest(BaseModel):
 sentiment_analyzer = pipeline("sentiment-analysis", model="nlptown/bert-base-multilingual-uncased-sentiment")
 
 
-# Function to map star rating to sentiment label
-def map_star_to_sentiment_label(star_rating):
-    if star_rating == 1:
-        return "Very Negative"
-    elif star_rating == 2:
-        return "Negative"
-    elif star_rating == 3:
-        return "Neutral"
-    elif star_rating == 4:
-        return "Positive"
-    elif star_rating == 5:
-        return "Very Positive"
-    else:
-        raise ValueError("Invalid star rating")
-
-
 # Function to split text into chunks of
 def split_text_into_chunks(text, max_token_length):
     words = text.split()
@@ -94,12 +78,8 @@ async def analyze_sentiment(article_content: SentimentRequest):
 
     # Calculate the average star rating
     average_star_rating = total_score / total_chunks
-    sentiment_label = map_star_to_sentiment_label(round(average_star_rating))
 
-    return {
-        "label": sentiment_label,
-        "average_score": average_star_rating
-    }
+    return int(average_star_rating)
 
 
 # Run registration with Eureka asynchronously

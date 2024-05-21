@@ -34,5 +34,5 @@ public class Article {
 
     private Integer views;
 
-    private Double sentiment;
+    private Integer sentimentScore;
 }

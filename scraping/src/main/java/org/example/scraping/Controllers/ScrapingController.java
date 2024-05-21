@@ -20,7 +20,6 @@ import java.util.List;
 public class ScrapingController {
 
     private final ScrapingService scrapingService;
-    private final MachineLearningClient machineLearningClient;
 
     @GetMapping("/status")
     public ResponseEntity<Boolean> checkScrapingServiceStatus() {
@@ -28,24 +27,22 @@ public class ScrapingController {
         return ResponseEntity.status(HttpStatus.OK).body(true);
     }
 
-//    @PostMapping("/scrape")
-//    @ResponseStatus(HttpStatus.OK)
-//    public ResponseEntity<List<PreProcessedArticle>> fetchArticles() {
-//        List<PreProcessedArticle> fetchedArticles = scrapingService.scrapeArticles();
-//        scrapingService.savePreProcessedArticles(fetchedArticles);
-//        scrapingService.getAllPreprocessedArticles();
-//        return ResponseEntity.status(HttpStatus.OK).body(fetchedArticles);
-//    }
+    @PostMapping("/scrape")
+    public void scrapeArticles() {
+        List<Article> fetchedArticles = scrapingService.scrapeArticles();
+        scrapingService.saveArticles(fetchedArticles);
+        scrapingService.saveToElastic();
+    }
 
     @PostMapping("/scrape/elastic")
     private ResponseEntity<String> saveToElastic() {
         return scrapingService.saveToElastic();
     }
 
-    @Scheduled(fixedDelay = 120000) // 2 minutes delay
-    public void scheduledScrapeAndSaveToElastic() {
-        List<Article> fetchedArticles = scrapingService.scrapeArticles();
-        scrapingService.saveArticles(fetchedArticles);
-        scrapingService.saveToElastic();
-    }
+//    @Scheduled(fixedDelay = 120000) // 2 minutes delay
+//    public void scheduledScrapeAndSaveToElastic() {
+//        List<Article> fetchedArticles = scrapingService.scrapeArticles();
+//        scrapingService.saveArticles(fetchedArticles);
+//        scrapingService.saveToElastic();
+//    }
 }
