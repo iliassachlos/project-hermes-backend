@@ -1,15 +1,16 @@
 import ssl
-import nltk
 import asyncio
-import py_eureka_client.eureka_client as eureka_client
 from fastapi import FastAPI, HTTPException
+from py_eureka_client import eureka_client
 from pydantic import BaseModel
-from nltk.sentiment import SentimentIntensityAnalyzer
 from fastapi.middleware.cors import CORSMiddleware
+from transformers import pipeline
 
 app = FastAPI()
 service_port = 8000
+max_token_length = 512
 
+# CORS middleware to allow requests from Spring Gateway
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:8083"],
@@ -21,36 +22,84 @@ app.add_middleware(
 
 # Register service to Eureka
 async def register_with_eureka():
-    await eureka_client.init_async(
-        eureka_server="http://localhost:8761",
-        app_name="machine-learning",
-        instance_port=service_port
-    )
+    try:
+        await eureka_client.init_async(
+            eureka_server="http://localhost:8761/eureka",
+            app_name="machine-learning",
+            instance_port=service_port
+        )
+    except Exception as e:
+        print(f"Failed to register with Eureka: {e}")
 
 
 # Disable SSL certificate verification
 ssl._create_default_https_context = ssl._create_unverified_context
-nltk.download('vader_lexicon')
 
 
+# Pydantic model for request body
 class SentimentRequest(BaseModel):
     text: str
 
 
+# Load the sentiment analysis model
+sentiment_analyzer = pipeline("sentiment-analysis", model="nlptown/bert-base-multilingual-uncased-sentiment")
+
+
+# Function to map star rating to sentiment label
+def map_star_to_sentiment_label(star_rating):
+    if star_rating == 1:
+        return "Very Negative"
+    elif star_rating == 2:
+        return "Negative"
+    elif star_rating == 3:
+        return "Neutral"
+    elif star_rating == 4:
+        return "Positive"
+    elif star_rating == 5:
+        return "Very Positive"
+    else:
+        raise ValueError("Invalid star rating")
+
+
+# Function to split text into chunks of
+def split_text_into_chunks(text, max_token_length):
+    words = text.split()
+    for i in range(0, len(words), max_token_length):
+        yield ' '.join(words[i:i + max_token_length])
+
+
 @app.post("/api/machine-learning/sentiment")
-async def analyze_sentiment(articleContent: SentimentRequest):
+async def analyze_sentiment(article_content: SentimentRequest):
     # Check if text is empty
-    if not articleContent.text.strip():
+    if not article_content.text.strip():
         raise HTTPException(status_code=404, detail="Text is empty")
 
-    # Initialize SentimentIntensityAnalyzer
-    sia = SentimentIntensityAnalyzer()
+    # Split text into chunks
+    chunks = list(split_text_into_chunks(article_content.text, max_token_length))
 
-    # Perform sentiment analysis using NLTK's VADER
-    sentiment_scores = sia.polarity_scores(articleContent.text)
-    compound_score = sentiment_scores['compound']
+    total_score = 0
+    total_chunks = len(chunks)
 
-    return compound_score
+    for chunk in chunks:
+        # Truncate the chunk if it exceeds the maximum token length
+        truncated_chunk = chunk[:max_token_length]
+
+        # Perform sentiment analysis
+        analysis = sentiment_analyzer(truncated_chunk)
+
+        # Extract start rating from the sentiment analysis result
+        star_rating = int(analysis[0]['label'].split()[0])
+
+        total_score = total_score + star_rating
+
+    # Calculate the average star rating
+    average_star_rating = total_score / total_chunks
+    sentiment_label = map_star_to_sentiment_label(round(average_star_rating))
+
+    return {
+        "label": sentiment_label,
+        "average_score": average_star_rating
+    }
 
 
 # Run registration with Eureka asynchronously
