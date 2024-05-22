@@ -43,7 +43,7 @@ public class ArticleServiceTest {
                 .source("source-1")
                 .category("category-1")
                 .views(8257)
-                .sentiment(0.327)
+                .sentimentScore(2)
                 .build();
     }
 

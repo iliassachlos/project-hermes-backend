@@ -46,7 +46,7 @@ public class BookmarkServiceTest {
                 "source1",
                 "category1",
                 72,
-                0.124
+                3
         );
         List<Article> bookmarkedArticles = new ArrayList<>();
         bookmarkedArticles.add(article);

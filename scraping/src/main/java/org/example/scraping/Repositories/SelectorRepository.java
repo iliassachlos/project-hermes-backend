@@ -6,4 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface SelectorRepository extends MongoRepository<Selector, String> {
+    Selector findByUuid(String uuid);
 }

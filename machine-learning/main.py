@@ -1,6 +1,6 @@
 import ssl
 import asyncio
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, status
 from py_eureka_client import eureka_client
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -50,6 +50,11 @@ def split_text_into_chunks(text, max_token_length):
     words = text.split()
     for i in range(0, len(words), max_token_length):
         yield ' '.join(words[i:i + max_token_length])
+
+
+@app.get("/api/machine-learning/status")
+async def check_machine_learning_service_status():
+    return {True}, status.HTTP_200_OK
 
 
 @app.post("/api/machine-learning/sentiment")
