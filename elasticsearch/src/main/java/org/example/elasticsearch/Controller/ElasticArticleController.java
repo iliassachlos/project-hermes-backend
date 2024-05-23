@@ -63,12 +63,16 @@ public class ElasticArticleController {
         Terms sources = searchResponse.getAggregations().get("source_agg");
         List<? extends Terms.Bucket> sourceBuckets = sources.getBuckets();
 
+        Terms sentiment = searchResponse.getAggregations().get("sentiment_agg");
+        List<? extends Terms.Bucket> sentimentBuckets = sentiment.getBuckets();
+
         Map<String, Object> response = new HashMap<>();
         response.put("articles", articles);
         response.put("totalHits", searchResponse.getHits().getTotalHits().value); // Total hits metadata
         response.put("maxScore", searchResponse.getHits().getMaxScore()); // Max score metadata
         response.put("categoryFacets", categoryBuckets.stream().collect(Collectors.toMap(Terms.Bucket::getKeyAsString, Terms.Bucket::getDocCount)));
         response.put("sourceFacets", sourceBuckets.stream().collect(Collectors.toMap(Terms.Bucket::getKeyAsString, Terms.Bucket::getDocCount)));
+        response.put("sentimentFacets", sentimentBuckets.stream().collect(Collectors.toMap(Terms.Bucket::getKeyAsNumber, Terms.Bucket::getDocCount)));
         return response;
     }
 }

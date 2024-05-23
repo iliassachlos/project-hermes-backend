@@ -47,6 +47,7 @@ public class ElasticArticleService {
                 .source(article.getSource())
                 .category(article.getCategory())
                 .views(article.getViews())
+                .sentimentScore(article.getSentimentScore())
                 .build();
     }
 
@@ -87,23 +88,21 @@ public class ElasticArticleService {
             });
         }
 
-//        Query query = Query.of(q -> q.bool(boolQueryBuilder.build()));
-
         TermsAggregationBuilder categoryAggregation = AggregationBuilders.terms("category_agg").field("category.keyword");
         TermsAggregationBuilder sourceAggregation = AggregationBuilders.terms("source_agg").field("source.keyword");
+        TermsAggregationBuilder sentimentAggregation = AggregationBuilders.terms("sentiment_agg").field("sentimentScore");
 
         SearchRequest searchRequest = new SearchRequest("articles");
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
         searchSourceBuilder.query(boolQueryBuilder);
         searchSourceBuilder.aggregation(categoryAggregation);
         searchSourceBuilder.aggregation(sourceAggregation);
+        searchSourceBuilder.aggregation(sentimentAggregation);
         searchSourceBuilder.size(1000);
         searchRequest.source(searchSourceBuilder);
 
         org.elasticsearch.action.search.SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 
         return searchResponse;
-
-//        return elasticsearchClient.search(s -> s.index("articles").query(query).size(1000), ElasticArticle.class);
     }
 }
