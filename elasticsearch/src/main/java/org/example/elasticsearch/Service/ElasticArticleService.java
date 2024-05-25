@@ -1,9 +1,8 @@
 package org.example.elasticsearch.Service;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -104,5 +103,19 @@ public class ElasticArticleService {
         org.elasticsearch.action.search.SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
 
         return searchResponse;
+    }
+
+    public SearchResponse sentimentScoreDistributionQuery() throws IOException {
+        TermsAggregationBuilder sentimentScoreAgg = AggregationBuilders.terms("sentiment_score_distribution")
+                .field("sentimentScore")
+                .size(10); // Adjust the size as needed
+
+        SearchRequest searchRequest = new SearchRequest("articles");
+        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.aggregation(sentimentScoreAgg);
+        searchSourceBuilder.size(0); // No need for hits, just aggregations
+        searchRequest.source(searchSourceBuilder);
+
+        return client.search(searchRequest, RequestOptions.DEFAULT);
     }
 }
