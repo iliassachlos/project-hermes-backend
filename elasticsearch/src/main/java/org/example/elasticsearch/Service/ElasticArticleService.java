@@ -1,6 +1,5 @@
 package org.example.elasticsearch.Service;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpHost;
@@ -29,12 +28,10 @@ import java.util.Map;
 @Slf4j
 @AllArgsConstructor
 public class ElasticArticleService {
-    private final ElasticArticleRepository articleRepository;
-    private final ElasticsearchClient elasticsearchClient;
-    private final RestHighLevelClient client = new RestHighLevelClient(
-            RestClient.builder(new HttpHost("localhost", 9200, "http")));
+    private final ElasticArticleRepository elasticArticleRepository;
+    private final RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("localhost", 9200, "http")));
 
-    private ElasticArticle transformArticleToElasticArticle(Article article) {
+    public ElasticArticle transformArticleToElasticArticle(Article article) {
         return ElasticArticle.builder()
                 .id(article.getId())
                 .uuid(article.getUuid())
@@ -50,13 +47,13 @@ public class ElasticArticleService {
                 .build();
     }
 
-    public void saveArticles(List<Article> preProcessedArticles) {
+    public void saveArticles(List<Article> articles) {
         List<ElasticArticle> elasticArticles = new ArrayList<>();
         try {
-            for (Article article : preProcessedArticles) {
+            for (Article article : articles) {
                 elasticArticles.add(transformArticleToElasticArticle(article));
             }
-            articleRepository.saveAll(elasticArticles);
+            elasticArticleRepository.saveAll(elasticArticles);
             log.info("All Articles were saved to Elasticsearch");
         } catch (Exception e) {
             log.error("An error occurred while saving articles to Elasticsearch", e);
@@ -100,9 +97,7 @@ public class ElasticArticleService {
         searchSourceBuilder.size(1000);
         searchRequest.source(searchSourceBuilder);
 
-        org.elasticsearch.action.search.SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
-
-        return searchResponse;
+        return client.search(searchRequest, RequestOptions.DEFAULT);
     }
 
     public SearchResponse sentimentScoreDistributionQuery() throws IOException {
