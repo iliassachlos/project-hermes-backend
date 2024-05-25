@@ -4,8 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.clients.ElasticsearchClient;
 import org.example.clients.Entities.Article;
-import org.example.clients.Entities.PreProcessedArticle;
-import org.springframework.amqp.AmqpRejectAndDontRequeueException;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.stereotype.Component;
 

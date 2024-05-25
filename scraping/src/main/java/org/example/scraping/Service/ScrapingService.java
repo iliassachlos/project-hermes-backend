@@ -4,18 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.amqp.RabbitMQMessageProducer;
 import org.example.clients.Entities.Article;
-import org.example.clients.Entities.PreProcessedArticle;
-import org.example.clients.MachineLearningClient;
 import org.example.scraping.Entities.Website;
 import org.example.scraping.Repositories.ArticleRepository;
-import org.example.scraping.Repositories.PreProcessedArticleRepository;
 import org.example.scraping.Repositories.WebsitesRepository;
 import org.example.scraping.utils.DateUtil;
 import org.example.scraping.utils.Scraper;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -31,14 +27,10 @@ import java.util.*;
 @AllArgsConstructor
 public class ScrapingService {
 
-    private final PreProcessedArticleRepository preProcessedArticleRepository;
     private final ArticleRepository articleRepository;
     private final WebsitesRepository websitesRepository;
 
-    private final MachineLearningClient machineLearningClient;
-
     private final RabbitMQMessageProducer rabbitMQMessageProducer;
-    private final RabbitTemplate rabbitTemplate;
     private final Scraper scraper;
 
     public List<Article> scrapeArticles() {
@@ -85,71 +77,17 @@ public class ScrapingService {
         return articles;
     }
 
-    public List<PreProcessedArticle> getAllPreprocessedArticles() {
-        try {
-            return preProcessedArticleRepository.findAll();
-        } catch (Exception e) {
-            log.error("An error occurred while trying to get all articles");
-            return null;
-        }
-    }
-
-    public void savePreProcessedArticles(List<PreProcessedArticle> articles) {
-        List<PreProcessedArticle> newArticles = new ArrayList<>();
-        Integer newArticlesCounter = 0;
-
-        articles.sort(Comparator.comparing(PreProcessedArticle::getTime, Comparator.nullsLast(Comparator.naturalOrder())));
-
-        log.info("Inserting articles to MongoDB...");
-        try {
-            for (PreProcessedArticle article : articles) {
-                // Check if article already exists in MongoDB based on URL
-                PreProcessedArticle existingArticle = preProcessedArticleRepository.findByUrl(article.getUrl());
-                if (existingArticle == null) {
-                    //IF article not exist, save it to MongoDB
-                    PreProcessedArticle savedArticle = preProcessedArticleRepository.save(article);
-                    newArticles.add(savedArticle);
-                    newArticlesCounter++;
-                }
-            }
-            for (PreProcessedArticle newArticle : newArticles) {
-                log.info("New article added: {}", newArticle.getTitle());
-            }
-            log.info("Articles added: {}", newArticlesCounter);
-        } catch (Exception e) {
-            log.error("Error occurred while saving articles", e);
-        }
-    }
-
-    public void deleteOldPreProcessedArticles() {
-        //Calculate 3 days ago
-        String threeDaysAgo = String.valueOf(LocalDate.now().minusDays(3));
-        log.info("Three days ago it was " + threeDaysAgo);
-        log.info("Deleting old articles...");
-        try {
-            //Find old articles
-            List<PreProcessedArticle> oldArticles = preProcessedArticleRepository.findByTimeBefore(threeDaysAgo);
-            //Delete articles older than 3 days
-            preProcessedArticleRepository.deleteByTimeBefore(threeDaysAgo);
-            log.info(oldArticles.size() + " articles were deleted");
-        } catch (Exception e) {
-            log.error("Error occurred while deleting old articles", e);
-        }
-    }
-
     public void saveArticles(List<Article> articles) {
-        List<Article> newArticles = new ArrayList<>();
-        Integer newArticlesCounter = 0;
-
-        articles.sort(Comparator.comparing(Article::getTime, Comparator.nullsLast(Comparator.naturalOrder())));
-
-        log.info("Inserting articles to MongoDB...");
         try {
+            List<Article> newArticles = new ArrayList<>();
+            Integer newArticlesCounter = 0;
+
+            articles.sort(Comparator.comparing(Article::getTime, Comparator.nullsLast(Comparator.naturalOrder())));
+            log.info("Inserting articles to MongoDB...");
+
             for (Article article : articles) {
-                // Check if article already exists in MongoDB based on URL
                 Article existingArticle = articleRepository.findByUrl(article.getUrl());
                 if (existingArticle == null) {
-                    //IF article not exist, save it to MongoDB
                     Article savedArticle = articleRepository.save(article);
                     newArticles.add(savedArticle);
                     newArticlesCounter++;
@@ -158,6 +96,7 @@ public class ScrapingService {
             for (Article newArticle : newArticles) {
                 log.info("New article added: {}", newArticle.getTitle());
             }
+
             log.info("Articles added: {}", newArticlesCounter);
         } catch (Exception e) {
             log.error("Error occurred while saving articles", e);
@@ -165,13 +104,15 @@ public class ScrapingService {
     }
 
     public void deleteOldArticles() {
-        //Calculate 3 days ago
-        String threeDaysAgo = String.valueOf(LocalDate.now().minusDays(3));
-        log.info("Three days ago it was " + threeDaysAgo);
-        log.info("Deleting old articles...");
         try {
+            //Calculate 3 days ago
+            String threeDaysAgo = String.valueOf(LocalDate.now().minusDays(3));
+            log.info("Three days ago it was " + threeDaysAgo);
+            log.info("Deleting old articles...");
+
             //Find old articles
             List<Article> oldArticles = articleRepository.findByTimeBefore(threeDaysAgo);
+
             //Delete articles older than 3 days
             articleRepository.deleteByTimeBefore(threeDaysAgo);
             log.info(oldArticles.size() + " articles were deleted");
@@ -183,9 +124,11 @@ public class ScrapingService {
     public ResponseEntity<String> saveToElastic() {
         try {
             List<Article> articles = articleRepository.findAll();
+            if(articles.isEmpty()) {
+                log.warn("No articles found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No articles were found to save to Elastic");
+            }
             log.info("Passing data to elastic");
-            //elasticsearchClient.saveArticles(preProcessedArticles);
-
             rabbitMQMessageProducer.publish(articles, "internal.exchange", "internal.elastic-saver.routing-key");
             return ResponseEntity.status(HttpStatus.OK).body("Save completed");
         } catch (Exception e) {
@@ -211,11 +154,9 @@ public class ScrapingService {
         if (!foundTimestamp) {
             time = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
         }
-
         if (DateUtil.isArticleOlderThanThreeDays(time)) {
             return null;
         }
-
         return time;
     }
 }
