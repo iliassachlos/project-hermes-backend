@@ -18,11 +18,18 @@ public class SelectorService {
     private final SelectorRepository selectorRepository;
 
     public ResponseEntity<List<Selector>> getAllSelectors() {
-        List<Selector> selectors = selectorRepository.findAll();
-        if (selectors.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+        try {
+            List<Selector> selectors = selectorRepository.findAll();
+            if (selectors.isEmpty()) {
+                log.info("No selectors found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+            log.info("Found {} selectors", selectors.size());
+            return ResponseEntity.status(HttpStatus.OK).body(selectors);
+        } catch (Exception e) {
+            log.error("An error occurred while getting all selectors", e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-        return ResponseEntity.status(HttpStatus.OK).body(selectors);
     }
 
     public ResponseEntity<Selector> getSelectorByUuid(String uuid) {
@@ -30,8 +37,9 @@ public class SelectorService {
             Selector selector = selectorRepository.findByUuid(uuid);
             if (selector == null) {
                 log.warn("Selector with uuid {} not found", uuid);
-                return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
+            log.info("Selector with uuid {} found", uuid);
             return ResponseEntity.status(HttpStatus.OK).body(selector);
         } catch (Exception e) {
             log.error("Error while getting selector by uuid", e);
@@ -43,6 +51,7 @@ public class SelectorService {
         try {
             Selector existingSelector = selectorRepository.findByUuid(uuid);
             if (existingSelector == null) {
+                log.warn("Selector with uuid {} not found", uuid);
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Selector with uuid " + uuid + " not found");
             }
             existingSelector.getSelectors().add(selector);
@@ -61,7 +70,7 @@ public class SelectorService {
             Selector existingSelector = selectorRepository.findByUuid(uuid);
             if (existingSelector == null) {
                 log.error("Selector with id {} not found", uuid);
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Selector with id " + uuid + " not found");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Selector with uuid " + uuid + " not found");
             }
             existingSelector.getSelectors().remove((int) selectorIndex);
             selectorRepository.save(existingSelector);

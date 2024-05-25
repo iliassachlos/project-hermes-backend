@@ -57,6 +57,7 @@ public class WebsiteServiceTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(websites, response.getBody());
         assertEquals(1, response.getBody().size());
+        assertEquals(2,response.getBody().get(0).getCategories().size());
 
         Mockito.verify(websitesRepository, Mockito.times(1)).findAll();
     }
