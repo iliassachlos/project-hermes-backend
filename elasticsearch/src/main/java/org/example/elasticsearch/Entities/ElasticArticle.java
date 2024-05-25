@@ -35,4 +35,6 @@ public class ElasticArticle {
     private String category;
 
     private Integer views;
+
+    private Integer sentimentScore;
 }

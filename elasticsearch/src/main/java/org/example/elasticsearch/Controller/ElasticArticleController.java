@@ -2,16 +2,13 @@ package org.example.elasticsearch.Controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import co.elastic.clients.elasticsearch.core.search.Hit;
 import lombok.extern.slf4j.Slf4j;
 import org.elasticsearch.action.search.SearchResponse;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.aggregations.bucket.terms.Terms;
 import org.example.clients.Entities.Article;
-import org.example.clients.Entities.PreProcessedArticle;
 import org.example.elasticsearch.Entities.ElasticArticle;
 import org.example.elasticsearch.Service.ElasticArticleService;
-
 import org.example.elasticsearch.dto.BooleanSearchRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -63,12 +60,35 @@ public class ElasticArticleController {
         Terms sources = searchResponse.getAggregations().get("source_agg");
         List<? extends Terms.Bucket> sourceBuckets = sources.getBuckets();
 
+        Terms sentiment = searchResponse.getAggregations().get("sentiment_agg");
+        List<? extends Terms.Bucket> sentimentBuckets = sentiment.getBuckets();
+
         Map<String, Object> response = new HashMap<>();
         response.put("articles", articles);
         response.put("totalHits", searchResponse.getHits().getTotalHits().value); // Total hits metadata
         response.put("maxScore", searchResponse.getHits().getMaxScore()); // Max score metadata
         response.put("categoryFacets", categoryBuckets.stream().collect(Collectors.toMap(Terms.Bucket::getKeyAsString, Terms.Bucket::getDocCount)));
         response.put("sourceFacets", sourceBuckets.stream().collect(Collectors.toMap(Terms.Bucket::getKeyAsString, Terms.Bucket::getDocCount)));
+        response.put("sentimentFacets", sentimentBuckets.stream().collect(Collectors.toMap(Terms.Bucket::getKeyAsNumber, Terms.Bucket::getDocCount)));
         return response;
     }
+
+    @PostMapping("/chart")
+    public Map<String, Object> getChartData() throws IOException {
+        SearchResponse searchResponse = elasticArticleService.sentimentScoreDistributionQuery();
+
+        Terms sentimentScoreDistribution = searchResponse.getAggregations().get("sentiment_score_distribution");
+        List<? extends Terms.Bucket> sentimentBuckets = sentimentScoreDistribution.getBuckets();
+
+        Map<String, Object> response = new HashMap<>();
+        if (sentimentBuckets != null) {
+            response.put("sentimentScoreDistribution", sentimentBuckets.stream()
+                    .collect(Collectors.toMap(bucket -> bucket.getKeyAsNumber().intValue(), Terms.Bucket::getDocCount)));
+        } else {
+            response.put("sentimentScoreDistribution", new HashMap<>()); // Ensure it's not null
+        }
+
+        return response;
+    }
+
 }
