@@ -155,7 +155,7 @@ public class ArticleServiceTest {
         Integer currentViews = article.getViews();
 
         Mockito.when(articleRepository.findByUuid(uuid)).thenReturn(article);
-        Mockito.when(articleRepository.save(article));
+        Mockito.when(articleRepository.save(article)).thenReturn(article);
 
         //Act
         ResponseEntity<ViewsResponse> response = articleService.updateArticleViewCount(uuid);

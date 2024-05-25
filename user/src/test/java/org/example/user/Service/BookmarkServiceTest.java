@@ -1,4 +1,4 @@
-package org.example.user.Services;
+package org.example.user.Service;
 
 import org.example.clients.ArticleClient;
 import org.example.clients.Entities.Article;

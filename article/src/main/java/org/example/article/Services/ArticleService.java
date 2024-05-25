@@ -62,10 +62,9 @@ public class ArticleService {
                         .build()
                 );
             }
-            int updatedViews = article.getViews() + 1;
+            Integer updatedViews = article.getViews() + 1;
             article.setViews(updatedViews);
             articleRepository.save(article);
-
             log.info("Article view count updated successfully");
             return ResponseEntity.status(HttpStatus.OK).body(ViewsResponse.builder()
                     .message("Article view count updated successfully")

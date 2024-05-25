@@ -3,7 +3,7 @@ package org.example.user.Controllers;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.clients.dto.user.AddQueryRequest;
-import org.example.user.Services.QueryService;
+import org.example.user.Service.QueryService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
