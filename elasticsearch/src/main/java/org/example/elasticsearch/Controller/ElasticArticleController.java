@@ -77,18 +77,32 @@ public class ElasticArticleController {
     public Map<String, Object> getChartData() throws IOException {
         SearchResponse searchResponse = elasticArticleService.sentimentScoreDistributionQuery();
 
+        // Extract sentiment score distribution
         Terms sentimentScoreDistribution = searchResponse.getAggregations().get("sentiment_score_distribution");
         List<? extends Terms.Bucket> sentimentBuckets = sentimentScoreDistribution.getBuckets();
+        Map<Integer, Long> sentimentScoreMap = sentimentBuckets.stream()
+                .collect(Collectors.toMap(bucket -> bucket.getKeyAsNumber().intValue(), Terms.Bucket::getDocCount));
 
+        // Extract category distribution
+        Terms categoryDistribution = searchResponse.getAggregations().get("category_distribution");
+        List<? extends Terms.Bucket> categoryBuckets = categoryDistribution.getBuckets();
+        Map<String, Long> categoryMap = categoryBuckets.stream()
+                .collect(Collectors.toMap(Terms.Bucket::getKeyAsString, Terms.Bucket::getDocCount));
+
+        // Extract source distribution
+        Terms sourceDistribution = searchResponse.getAggregations().get("source_distribution");
+        List<? extends Terms.Bucket> sourceBuckets = sourceDistribution.getBuckets();
+        Map<String, Long> sourceMap = sourceBuckets.stream()
+                .collect(Collectors.toMap(Terms.Bucket::getKeyAsString, Terms.Bucket::getDocCount));
+
+        // Prepare the response
         Map<String, Object> response = new HashMap<>();
-        if (sentimentBuckets != null) {
-            response.put("sentimentScoreDistribution", sentimentBuckets.stream()
-                    .collect(Collectors.toMap(bucket -> bucket.getKeyAsNumber().intValue(), Terms.Bucket::getDocCount)));
-        } else {
-            response.put("sentimentScoreDistribution", new HashMap<>()); // Ensure it's not null
-        }
+        response.put("sentimentScoreDistribution", sentimentScoreMap);
+        response.put("categoryDistribution", categoryMap);
+        response.put("sourceDistribution", sourceMap);
 
         return response;
     }
+
 
 }

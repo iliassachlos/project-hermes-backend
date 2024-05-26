@@ -10,6 +10,7 @@ import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.BoolQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
+import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.aggregations.AggregationBuilders;
 import org.elasticsearch.search.aggregations.bucket.terms.TermsAggregationBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
@@ -101,16 +102,40 @@ public class ElasticArticleService {
     }
 
     public SearchResponse sentimentScoreDistributionQuery() throws IOException {
+        // Define the time range query
+        RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery("time")
+                .gte("now-7d/d")
+                .lte("now/d");
+
+        // Define the sentiment score aggregation
         TermsAggregationBuilder sentimentScoreAgg = AggregationBuilders.terms("sentiment_score_distribution")
                 .field("sentimentScore")
-                .size(10); // Adjust the size as needed
+                .size(100); // Adjust the size as needed
 
-        SearchRequest searchRequest = new SearchRequest("articles");
+        // Define the category aggregation
+        TermsAggregationBuilder categoryAgg = AggregationBuilders.terms("category_distribution")
+                .field("category.keyword")
+                .size(100); // Adjust the size as needed
+
+        TermsAggregationBuilder sourceAgg = AggregationBuilders.terms("source_distribution")
+                .field("source.keyword")
+                .size(100);
+
+        // Create the search source builder and add the query and aggregations
         SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder();
+        searchSourceBuilder.query(rangeQuery);
         searchSourceBuilder.aggregation(sentimentScoreAgg);
+        searchSourceBuilder.aggregation(categoryAgg);
+        searchSourceBuilder.aggregation(sourceAgg);
         searchSourceBuilder.size(0); // No need for hits, just aggregations
+
+        // Create the search request and set the source
+        SearchRequest searchRequest = new SearchRequest("articles");
         searchRequest.source(searchSourceBuilder);
 
+        // Execute the search request and return the response
         return client.search(searchRequest, RequestOptions.DEFAULT);
     }
+
+
 }
