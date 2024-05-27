@@ -74,8 +74,9 @@ public class ElasticArticleController {
     }
 
     @PostMapping("/chart")
-    public Map<String, Object> getChartData() throws IOException {
-        SearchResponse searchResponse = elasticArticleService.sentimentScoreDistributionQuery();
+    public Map<String, Object> getChartData(@RequestBody Map<String, Integer> requestParams) throws IOException {
+        int days = requestParams.getOrDefault("days", 7); // Default to 7 days if not provided
+        SearchResponse searchResponse = elasticArticleService.sentimentScoreDistributionQuery(days);
 
         // Extract sentiment score distribution
         Terms sentimentScoreDistribution = searchResponse.getAggregations().get("sentiment_score_distribution");

@@ -101,10 +101,10 @@ public class ElasticArticleService {
         return client.search(searchRequest, RequestOptions.DEFAULT);
     }
 
-    public SearchResponse sentimentScoreDistributionQuery() throws IOException {
+    public SearchResponse sentimentScoreDistributionQuery(int days) throws IOException {
         // Define the time range query
         RangeQueryBuilder rangeQuery = QueryBuilders.rangeQuery("time")
-                .gte("now-7d/d")
+                .gte("now-" + days + "d/d")
                 .lte("now/d");
 
         // Define the sentiment score aggregation
