@@ -19,7 +19,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="machine-learning" target="17" />
+      <module name="machine-learning-test" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
@@ -30,7 +30,7 @@
       <module name="clients" options="-parameters" />
       <module name="elasticsearch" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
-      <module name="machine-learning" options="-parameters" />
+      <module name="machine-learning-test" options="-parameters" />
       <module name="mongoArticle" options="-parameters" />
       <module name="project-hermes-backend" options="" />
       <module name="scraping" options="-parameters" />
