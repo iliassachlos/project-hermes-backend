@@ -4,7 +4,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.math3.random.RandomDataGenerator;
 import org.example.clients.Entities.Article;
-import org.example.clients.MachineLearningClient;
 import org.example.clients.dto.scraping.SentimentRequest;
 import org.example.scraping.Entities.Selector;
 import org.example.scraping.Repositories.SelectorRepository;
@@ -29,8 +28,6 @@ public class Scraper {
 
     private final SelectorRepository selectorRepository;
     private final WebsitesRepository websitesRepository;
-
-    private final MachineLearningClient machineLearningClient;
 
     private final RestTemplate restTemplate;
 
@@ -65,7 +62,6 @@ public class Scraper {
 
         List<String> titleSelectors = allSelectors.get("titleSelectors");
         List<String> articleSelectors = allSelectors.get("articleSelectors");
-        List<String> timeSelectors = allSelectors.get("timeSelectors");
 
         RandomDataGenerator randomDataGenerator = new RandomDataGenerator();
         Integer randomViews = randomDataGenerator.nextInt(100, 2000);
@@ -79,9 +75,6 @@ public class Scraper {
 
             // Fetch content of the article
             String articleContent = fetchArticleContent(document, articleSelectors);
-
-            // Fetch timestamp of the article
-//            String articleTimestamp = fetchArticleTime(document, timeSelectors);
 
             // Fetch source of the article
             String articleSource = fetchArticleSource(document, articleURL);
@@ -173,31 +166,6 @@ public class Scraper {
         }
         return content;
     }
-
-//    private String fetchArticleTime(Document document, List<String> timeSelectors) {
-//        String time = null;
-//        boolean foundTimestamp = false;
-//        for (String selector : timeSelectors) {
-//            // Select elements matching the current CSS selector
-//            Elements elements = document.select(selector);
-//            if (!elements.isEmpty()) {
-//                time = elements.get(0).attr("datetime");
-//                if (!Objects.equals(time, "")) {
-//                    foundTimestamp = true;
-//                }
-//                break;
-//            }
-//        }
-//        if (!foundTimestamp) {
-//            time = LocalDateTime.now().format(DateTimeFormatter.ISO_DATE_TIME);
-//        }
-//
-//        if (DateUtil.isArticleOlderThanThreeDays(time)) {
-//            return null;
-//        }
-//
-//        return time;
-//    }
 
     private String fetchArticleSource(Document document, String articleURL) {
         Element sourceElement = document.selectFirst("meta[property=og:site_name]");
