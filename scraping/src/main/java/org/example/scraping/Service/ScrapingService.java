@@ -35,7 +35,7 @@ public class ScrapingService {
 
     public List<Article> scrapeArticles() {
         List<Article> articles = new ArrayList<>();
-        Integer articlesToScrape = 1;
+        Integer articlesToScrape = 10;
         try {
             log.info("Starting fetching process...");
             Map<String, List<String>> allSelectors = scraper.getAllSelectorsForScraping();

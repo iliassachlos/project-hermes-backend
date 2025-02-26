@@ -15,10 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RestController
@@ -65,7 +62,7 @@ public class ElasticArticleController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("articles", articles);
-        response.put("totalHits", searchResponse.getHits().getTotalHits().value); // Total hits metadata
+        response.put("totalHits", Objects.requireNonNull(searchResponse.getHits().getTotalHits()).value); // Total hits metadata
         response.put("maxScore", searchResponse.getHits().getMaxScore()); // Max score metadata
         response.put("categoryFacets", categoryBuckets.stream().collect(Collectors.toMap(Terms.Bucket::getKeyAsString, Terms.Bucket::getDocCount)));
         response.put("sourceFacets", sourceBuckets.stream().collect(Collectors.toMap(Terms.Bucket::getKeyAsString, Terms.Bucket::getDocCount)));
